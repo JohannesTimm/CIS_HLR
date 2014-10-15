@@ -1,0 +1,43 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+*.d
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.x
+
+# Archives
+*.tar.gz
+*.tgz
+
+.kateproject
+.kateproject.d
+
+*.orig
+
+# Python
+*.pyo
+.idea
+__pycache__
+
+#Backups
+*~
+*.back
+*.backup
+
+#Other
+win_hlr
