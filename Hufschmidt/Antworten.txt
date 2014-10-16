@@ -1,3 +1,18 @@
 Antworten zu Blatt 1
 --------------------
+Frage 2.): Es gibt *doch* eine man pgae zu 'cd', obwohl cd kein
+           externes Programm sondern Teil der bash ist.
+
+-rw-r--r-- 1 hufschmidt hr-1415 266240 Oct 16 09:54 testarchiv.tar
+-rw-r--r-- 1 hufschmidt hr-1415 262437 Oct 16 09:54 testarchiv.tar.gz
+
+Frage 3f): Da der Inhalt von testarchiv nur zufällige Daten enthält,
+           gibt es keine effektive Komprimierung, die Datei ist nur wenig
+           kleiner.
+
+Frage 3h): tar -czf testarchiv.tar.gz testarchiv
+           Erstaunlicherweise ist die dadurch erzeugte Datein nun etwas
+           kleiner als die mit 2 Schritten erzeugte.
+rw-r--r-- 1 hufschmidt hr-1415 262422 Oct 16 09:58 testarchiv.tar.gz
+ 
 
