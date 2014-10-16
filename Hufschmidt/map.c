@@ -1,10 +1,10 @@
 #include <stdio.h>
 
 // Definieren Sie ein enum cardd
-
+typedef enum { N = 1, S = 2, E = 4, W = 8} cardd;
 
 // Definieren Sie ein 3x3-Array namens map, das Werte vom Typ cardd enthält
-
+cardd* map[3][3] = {;
 
 // Die Funktion set_dir soll an Position x, y den Wert dir in das Array map eintragen
 // Überprüfen Sie x und y um mögliche Arrayüberläufe zu verhindern
