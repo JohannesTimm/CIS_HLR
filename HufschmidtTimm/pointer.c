@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 // Nach Korrektur der Funktion call_by_reference löschen
 int TODO;
