@@ -1,0 +1,16 @@
+Rückmeldung zu Blatt 0 und Blatt 1:
+
+Bearbeitungszeit: 4 Stunden (*)
+Schwierigkeitsgrad: Genau richtig
+Lehrreich: Etwas (**)
+Verständlichkeit: Verständlichkeit
+
+Kommentar:
+(*) Viel Zeit ging verloren bis ich mich richtig anmelden konnte.
+
+(**) Das kann ich erst genauer beurteilen, wenn ich weiß, welchen Stoff
+     wir später brauchen.
+     
+- Es wäre hilfreich gewesn, wenn in der Vorlesung schon ein paar Takte
+  zur Sprache C gesagt worden wären, insbesondere zum Arbeiten mit enum.
+  
