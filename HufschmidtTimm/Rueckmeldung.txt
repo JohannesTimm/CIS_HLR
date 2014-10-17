@@ -15,7 +15,7 @@ Kommentare:
       zur Sprache C gesagt worden wären, insbesondere zum Arbeiten mit enum
       und mit Pointern.
      
-(***) Insbesondere bei Aufgabe 2 musste etwas rätseln was nun genau gamacht
-      werden sollt: Ist TODO eine einzelne Variable oder eine komplette
-      Anweisungszeile die neu erstellt werden soll?
-  
+(***) Insbesondere bei Aufgabe 3 (Pointer) musste man rätseln, was nun genau
+      gamacht  werden sollte: Ist das TODO am Anfang eine einzelne Variable 
+      oder eine  komplette  Anweisungszeile die neu erstellt werden soll?
+
