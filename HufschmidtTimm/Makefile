@@ -1,12 +1,17 @@
-all: map
-	
-pointer: map.o
-	gcc -o map map.o
-	
-pointer.o: map.c
-	gcc -c map.c
+CC=gcc
+CFLAGS=-std=gnu99 -Wall -Wextra -pedantic
+LD=$(CC)
+LDFLAGS=-lm
+
+all: map pointer
+
+pointer: pointer.o
+
+map: map.o
+
+%.o: %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -f map
-	rm -f *.o
-	rm -f *~
+	rm -f map pointer
+	rm -f *.o *~

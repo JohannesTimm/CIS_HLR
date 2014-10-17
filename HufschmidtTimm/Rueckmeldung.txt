@@ -1,16 +1,21 @@
 Rückmeldung zu Blatt 0 und Blatt 1:
 
-Bearbeitungszeit: 4 Stunden (*)
-Schwierigkeitsgrad: Genau richtig
+Bearbeitungszeit: 6 Stunden (*)
+Schwierigkeitsgrad: zu schwer
 Lehrreich: wenig (**)
-Verständlichkeit: Verständlichkeit
+Verständlichkeit: teilweise unklar (***)
 
-Kommentar:
-(*) Viel Zeit ging verloren bis ich mich richtig anmelden konnte.
+Kommentare:
+(*)   Viel Zeit ging verloren bis ich mich richtig anmelden konnte.
 
-(**) Bisher gabe es keine Korrelation zwischen Vorlesungs-Stoff und 
-     Übungsaufgaben.
+(**)  Bisher gabe es keinerlei Korrelation zwischen Vorlesungs-Stoff und 
+      Übungsaufgaben.
      
-- Es wäre hilfreich gewesn, wenn in der Vorlesung schon ein paar Takte
-  zur Sprache C gesagt worden wären, insbesondere zum Arbeiten mit enum.
+      Es wäre hilfreich gewesn, wenn in der Vorlesung schon ein paar Takte
+      zur Sprache C gesagt worden wären, insbesondere zum Arbeiten mit enum
+      und mit Pointern.
+     
+(***) Insbesondere bei Aufgabe 2 musste etwas rätseln was nun genau gamacht
+      werden sollt: Ist TODO eine einzelne Variable oder eine komplette
+      Anweisungszeile die neu erstellt werden soll?
   
