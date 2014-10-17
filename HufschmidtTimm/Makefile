@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-std=gnu99 -Wall -Wextra -pedantic
+# CFLAGS=-std=gnu99 -Wextra -pedantic
 LD=$(CC)
 LDFLAGS=-lm
 
