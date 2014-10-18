@@ -1,14 +1,22 @@
 Antworten zu Blatt 1
 --------------------
-Frage 2.): Es gibt *doch* eine man pgae zu 'cd', obwohl cd kein
-           externes Programm sondern Teil der bash ist.
+Frage 2.): Es gibt auf dem Cluster eine man page zu 'cd', obwohl cd kein
+           externes Programm sondern Teil der bash ist. Die Funktionalität 
+           von cd für die jeweilige Shell ist in der Manpage der Shell
+           beschieben. Die dezidierte Hilfe für cd (falls benötigt) kann 
+           mit "help cd" aufgerufen werden.
+
 
 -rw-r--r-- 1 hufschmidt hr-1415 266240 Oct 16 09:54 testarchiv.tar
 -rw-r--r-- 1 hufschmidt hr-1415 262437 Oct 16 09:54 testarchiv.tar.gz
 
 Frage 3f): Da der Inhalt von testarchiv nur zufällige Daten enthält,
            gibt es keine effektive Komprimierung, die Datei ist nur wenig
-           kleiner.
+           kleiner. Das (unkomprimierte) Archiv hat die Größe der Enthaltenen
+           Datei sowie der Verwaltungsinformationen des Verzeichnisses und 
+           eines Archivheaders. Ein (unkomprimiertes) Archiv hat also eine
+           Dateigröße die der Summe aller Datei- und Ordnergrößen, die im Archiv
+           enthalten sind sowie seines Headers entspricht.
 
 Frage 3h): tar -czf testarchiv.tar.gz testarchiv
            Erstaunlicherweise ist die dadurch erzeugte Datein nun etwas
