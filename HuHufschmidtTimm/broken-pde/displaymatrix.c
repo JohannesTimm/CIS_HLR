@@ -74,7 +74,8 @@ DisplayMatrix (char *s, double *v, int interlines)
 	}
       fprintf (file, "\n");
     }
-  fclose (file);
+
+  // fclose (file);
 }
 
 

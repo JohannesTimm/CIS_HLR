@@ -1,0 +1,5 @@
+Segmentation fault in calculate () at partdiff-seq.c:230
+		Matrix[j - 1][m2][i] statt Matrix[m2][j - 1][i]
+
+Crash in DisplayMatrix() at displaymatrix.c:77
+  fclose (file);  // weiß der Geier warum
