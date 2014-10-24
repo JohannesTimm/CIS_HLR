@@ -99,7 +99,7 @@ allocateMatrices (void)
       errorQuit ();
     }				/* quit if error   */
 
-  for (i = 0; i <= 1; i++)
+  for (i = 0; i <= N; i++) /*error was here*/
     for (j = 0; j <= N; j++)
       Matrix[i][j] = (double *) (M + (i * (N + 1) * (N + 1)) + (j * (N + 1)));
 }

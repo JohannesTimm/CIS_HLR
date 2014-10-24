@@ -63,7 +63,15 @@ DisplayMatrix (char *s, double *v, int interlines)
       printf ("\n");
     }
   fflush (stdout);
+  printf("acessing file");
   file = fopen ("function.data", "w");
+  /*need to check if this works, might be that there is no write acess!*/
+  if (file == NULL) {
+        printf ("ERROR:File not created okay");
+         errorQuit ();
+        
+    }
+  
   for (y = 0; y < 9; y++)
     {
       for (x = 0; x < 9; x++)
@@ -74,8 +82,9 @@ DisplayMatrix (char *s, double *v, int interlines)
 	}
       fprintf (file, "\n");
     }
-
-  // fclose (file);
+   fflush (file);
+   fclose (file);
+   
 }
 
 
