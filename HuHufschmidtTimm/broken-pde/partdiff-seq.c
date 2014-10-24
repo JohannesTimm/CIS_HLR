@@ -227,7 +227,7 @@ calculate (void)
 	  for (i = 1; i < N; i++)	/* over all rows  */
 	    {
 	      star = -Matrix[m2][i - 1][j]
-		- Matrix[m2][j - 1][i] + 4 * Matrix[m2][i][j] -
+		- Matrix[m2][i][j - 1] + 4 * Matrix[m2][i][j] -
 		Matrix[m2][i][j + 1] - Matrix[m2][i + 1][j];
 
 	      residuum = getResiduum (i, j);
