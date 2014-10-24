@@ -1,0 +1,30 @@
+Fehler im Programm simple
+-------------------------
+Die Zeilnenummern beziehen sich auf die ursprüngliche Version
+
+mistake1, Zeile 12:
+buf wird auf dem Stack angelegt, und geht nach dem Rücksprung verloren
+
+mistake2, Zeile 19:
+es wird zu wenig Speicher allokiert
+
+mistake2, Zeile 20:
+ist ja ganz nett, aber hinterher wird buf[1] benötigt.
+
+mistake3, Zeile 27:
+die Variable mistake2_ wird nicht benötigt
+
+mistake3, Zeile 28:
+Die Funkion mistake2 muss aufgerufen werden, sonst bekommt man nur
+die Adresse des Codes
+
+mistake4, Zeile 38:
+Wenn buf weg ist, wie will man dann im Hauproframm noch darauf zugreifen?
+
+main(), Zeile 55:
+p[1] zeigt auf das zweite Element des Arrays, freigegeben werden muss aber
+der Pointer, der auf das erste Element zeigt. Gleiches gilt für p[0].
+
+Bei p[2] und p[3] ist es einfacher, die könenn direkt freigegeben werden.
+
+
