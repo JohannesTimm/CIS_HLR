@@ -63,7 +63,7 @@ DisplayMatrix (char *s, double *v, int interlines)
       printf ("\n");
     }
   fflush (stdout);
-  printf("acessing file");
+  //printf("acessing file");
   file = fopen ("function.data", "w");
   /*need to check if this works, might be that there is no write acess!*/
   if (file == NULL) {
