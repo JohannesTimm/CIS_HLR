@@ -24,3 +24,4 @@ askparams.c:197  sscanf (argV[33], "%d", interlines);
  33 =3
  partdiff-seq.c:96  M = malloc (sizeof (double) * (N + 1) * (N - 1) * 2);
  partdiff-swq:165 free(Matrix) /*too early, prevent use after free*/
+ M is not free at program ending
