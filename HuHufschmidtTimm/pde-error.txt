@@ -18,3 +18,9 @@ all caused by error in  line 102
     for (j = 0; j <= N; j++)
       Matrix[i][j] = (double *) (M + (i * (N + 1) * (N + 1)) + (j * (N + 1)));
 }
+
+
+askparams.c:197  sscanf (argV[33], "%d", interlines);
+ 33 =3
+ partdiff-seq.c:96  M = malloc (sizeof (double) * (N + 1) * (N - 1) * 2);
+ partdiff-swq:165 free(Matrix) /*too early, prevent use after free*/

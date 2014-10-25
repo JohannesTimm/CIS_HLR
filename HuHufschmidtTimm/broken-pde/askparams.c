@@ -194,7 +194,7 @@ AskParams (int *method,
 	  exit (0);
 	}
       sscanf (argV[2], "%d", method);
-      sscanf (argV[33], "%d", interlines);
+      sscanf (argV[3], "%d", interlines); /*was 33 seemed not to make sense*/
       sscanf (argV[4], "%d", func);
       sscanf (argV[5], "%d", termination);
       if (*termination == 1)

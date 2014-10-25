@@ -93,13 +93,13 @@ allocateMatrices (void)
       errorQuit ();
     }				/* quit if error   */
 
-  M = malloc (sizeof (double) * (N + 1) * (N - 1) * 2);	/* allocate memory */
+  M = malloc (sizeof (double) * (N + 1) * (N + 1) * 2);	/* allocate memory */ /*why minus plus makes more sense to me*/
   if (M == 0)
     {
       errorQuit ();
     }				/* quit if error   */
 
-  for (i = 0; i <= N; i++) /*error was here*/
+  for (i = 0; i <= 1; i++) /*error  here*/
     for (j = 0; j <= N; j++)
       Matrix[i][j] = (double *) (M + (i * (N + 1) * (N + 1)) + (j * (N + 1)));
 }
@@ -162,11 +162,12 @@ initMatrices (void)
 void
 freeMatrices (void)
 {
-  free (Matrix);
+  /*free (Matrix); not here to prevent use after free*/
   if (Matrix[1] != 0)
     free (Matrix[1]);
   if (Matrix[0] != 0)
     free (Matrix[0]);
+  free (Matrix); 
 }
 
 
