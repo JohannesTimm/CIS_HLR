@@ -72,6 +72,12 @@ JobId=68895 Name=timescript
     (z.B. west7), bauen Sie eine Verbindung zu diesem Knoten auf und führen sie hostname darauf aus.
     
 12. Wie hoch ist das Timeout auf dem Cluster, bis alle Knoten wieder freigegeben werden?
+$ sinfo --partition=cluster
+PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
+cluster*     up    6:00:00      9  alloc west[1-4,6-10]
+cluster*     up    6:00:00      1   idle west5
+
+Timelimit: 6:00:00
 
 13. Wie können Sie die Priorität ihrer Jobs nachschauen? Können Sie diese verändern oder beeinflussen?
 $ sprio
