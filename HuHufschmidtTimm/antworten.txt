@@ -30,7 +30,11 @@ Es gibt Problem in meinem PC, aber ich denke, dass die Vorteile grafische Ausgab
 
 7. Gibt es eine Möglichkeit, einen bereits adgeschickten Job zu lösen (bevor oder während er läuft)? Wenn ja, wie?
 Ja, solche Befehle benutzen:
-$ scancel [job_id]
+$ scancel [jobid] 
+$ scancel -u [login]
+  alle Jobs zu lösen.
+$ scancel -t PD
+  alle pending Jobs zu lösen
 
 8. Können auf dem Cluster mehrere Nutzer oder Jobs gleichzeitig denselben Knoten benutzen?
 Ich denke nein, weil wenn eine Knote besetzt ist, muss andere warten.
