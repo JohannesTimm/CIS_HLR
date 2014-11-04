@@ -70,7 +70,18 @@ JobId=68895 Name=timescript
     
 11. Finden Sie heraus, wie Sie einen einzelnen Knoten allokieren können. Allokieren Sie einen konkreten Knoten
     (z.B. west7), bauen Sie eine Verbindung zu diesem Knoten auf und führen sie hostname darauf aus.
-    
+
+$ salloc --nodelist=west8
+salloc: Granted job allocation 68996
+$ squeue
+JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+68996   cluster     bash       hu  R       0:06      1 west8
+68960   cluster     bash    jacob  R    1:39:41      1 west7
+68818     magny     bash     ganz  R    6:37:00      1 magny1
+$ srun --jobid=68996 hostname
+west8
+
+
 12. Wie hoch ist das Timeout auf dem Cluster, bis alle Knoten wieder freigegeben werden?
 $ sinfo --partition=cluster
 PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
