@@ -1,0 +1,64 @@
+1. Was bedeutet der Begriff Batch-Queuing? Welche Aufgaben hat ein Batch-Queuing-System?
+Eine Reihe von sequentiellen Befehlssatz, die zu dem Computer sagen, wie Computer die Aufgaben effizient und geordnet
+ausführen kann.
+Ein Batch-Queuing-System überwächt und steuert die Jobs, z.B Priorität entscheiden, angeforderte Ressource allokieren.
+
+2. Nennen Sie drei Beispiele für Batch-Queuing-System?
+
+3. Machen Sie sich mit der Manpage von sbatch vertraut.
+submit a batch script to slurm.
+
+4. Welches Batch-Queuing-System wird auf dem Cluster verwendet?
+SLURM
+
+5. Wie lassen sich die aktuellen Jobs und deren Status anzeigen?
+$ smap
+xTue Nov  4 15:02:23 2014                                                                                                                                   x
+xID JOBID   PARTITION USER     NAME      ST      TIME NODES NODELIST                                                                                        x
+xA  68818   magny     ganz     bash      R   02:40:35     1 magny1                                                                                          x
+xB  68833   cluster   burba    bash      R   01:57:00     1 west7     
+$ squeue
+JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+68833   cluster     bash    burba  R    1:58:13      1 west7
+68818     magny     bash     ganz  R    2:41:48      1 magny1
+
+6. Machen Sie sich mit dem Befehl sview vertraut. Beschreiben Sie die wichtigsten Vorteile gegenüber dem vorigen Punkt.
+$ sview
+
+(sview:5067): Gtk-WARNING **: cannot open display:
+Es gibt Problem in meinem PC, aber ich denke, dass die Vorteile grafische Ausgabe ist.
+
+7. Gibt es eine Möglichkeit, einen bereits adgeschickten Job zu lösen (bevor oder während er läuft)? Wenn ja, wie?
+Ja, solche Befehle benutzen:
+$ scancel [job_id]
+
+8. Können auf dem Cluster mehrere Nutzer oder Jobs gleichzeitig denselben Knoten benutzen?
+Ich denke nein, weil wenn eine Knote besetzt ist, muss andere warten.
+
+9. Finden Sie heraus wie Sie sich den detaillierten Status eines Jobs ausgeben lassen können?
+$ sacct
+
+10. Welche Scheduling-Verfahren sind bei dem auf dem Cluster benutzten System möglich?
+    Welches wird benutzt?
+    
+11. Finden Sie heraus, wie Sie einen einzelnen Knoten allokieren können. Allokieren Sie einen konkreten Knoten
+    (z.B. west7), bauen Sie eine Verbindung zu diesem Knoten auf und führen sie hostname darauf aus.
+    
+12. Wie hoch ist das Timeout auf dem Cluster, bis alle Knoten wieder freigegeben werden?
+
+13. Wie können Sie die Priorität ihrer Jobs nachschauen? Können Sie diese verändern oder beeinflussen?
+$ sprio
+
+14. Welche unterschiedlichen Partitionen sind auf dem Cluster eingerichtet? Wie kann eine andere als die 
+    Standardpartition bunutzt werden?
+$ sinfo
+PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
+cluster*     up    6:00:00      1  alloc west7
+cluster*     up    6:00:00      9   idle west[1-6,8-10]
+compute      up    6:00:00     10   idle amd[1-5],nehalem[1-5]
+abu          up    6:00:00      1  down* abu4
+abu          up    6:00:00      4   idle abu[1-3,5]
+magny        up   12:00:00      1  alloc magny1
+Es gibt vier Partitionen: cluster, compute, abu, magny. Für Cluster sind west[1-10].
+
+
