@@ -40,7 +40,30 @@ $ scancel -t PD
 Ich denke nein, weil wenn eine Knote besetzt ist, muss andere warten.
 
 9. Finden Sie heraus wie Sie sich den detaillierten Status eines Jobs ausgeben lassen können?
-$ sacct
+$ scontrol show -d job 68895
+JobId=68895 Name=timescript
+   UserId=hu(1206) GroupId=ppg-14(1020)
+   Priority=14 Account=(null) QOS=normal
+   JobState=COMPLETED Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 ExitCode=0:0
+   DerivedExitCode=0:0
+   RunTime=00:00:00 TimeLimit=06:00:00 TimeMin=N/A
+   SubmitTime=2014-11-04T16:52:52 EligibleTime=2014-11-04T16:52:52
+   StartTime=2014-11-04T16:52:52 EndTime=2014-11-04T16:52:52
+   PreemptTime=None SuspendTime=None SecsPreSuspend=0
+   Partition=cluster AllocNode:Sid=cluster:1931
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=west8
+   BatchHost=west8
+   NumNodes=1 NumCPUs=24 CPUs/Task=1 ReqS:C:T=*:*:*
+     Nodes=west8 CPU_IDs=0-11 Mem=0
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) Gres=(null) Reservation=(null)
+   Shared=0 Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/hu/03/timescript
+   WorkDir=/home/hu/03
+
+
 
 10. Welche Scheduling-Verfahren sind bei dem auf dem Cluster benutzten System möglich?
     Welches wird benutzt?
@@ -55,7 +78,12 @@ $ sprio
 
 14. Welche unterschiedlichen Partitionen sind auf dem Cluster eingerichtet? Wie kann eine andere als die 
     Standardpartition bunutzt werden?
-$ sinfo
+$ sinfo --partition=cluster
+PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
+cluster*     up    6:00:00      2  alloc west[7-8]
+cluster*     up    6:00:00      8   idle west[1-6,9-10]
+
+$ sinfo 
 PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
 cluster*     up    6:00:00      1  alloc west7
 cluster*     up    6:00:00      9   idle west[1-6,8-10]
@@ -63,6 +91,7 @@ compute      up    6:00:00     10   idle amd[1-5],nehalem[1-5]
 abu          up    6:00:00      1  down* abu4
 abu          up    6:00:00      4   idle abu[1-3,5]
 magny        up   12:00:00      1  alloc magny1
-Es gibt vier Partitionen: cluster, compute, abu, magny. Für Cluster sind west[1-10].
+
+Es gibt vier Partition: cluster, compute, abu, magny. Für Cluster sind west[1-10].
 
 
