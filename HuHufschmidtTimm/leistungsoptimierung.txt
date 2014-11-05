@@ -1,0 +1,65 @@
+Ergebnisse mit time und gprof:
+==============================
+$ time ./partdiff-seq 1 2 128 1 2 1024 > /dev/null
+real    1m46.372s
+user    1m45.203s
+sys     0m0.537s
+
+
+$ gprof -b ./partdiff-seq
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 96.45     81.21    81.21        1    81.21    84.08  calculate
+  3.41     84.08     2.87 1088472064     0.00     0.00  getResiduum
+  0.26     84.30     0.22        1     0.22     0.22  initMatrices
+  0.00     84.30     0.00        4     0.00     0.00  allocateMemory
+  0.00     84.30     0.00        1     0.00     0.00  AskParams
+  0.00     84.30     0.00        1     0.00     0.00  DisplayMatrix
+  0.00     84.30     0.00        1     0.00     0.00  allocateMatrices
+  0.00     84.30     0.00        1     0.00     0.00  displayStatistics
+  0.00     84.30     0.00        1     0.00     0.00  freeMatrices
+  0.00     84.30     0.00        1     0.00     0.00  initVariables
+
+
+Fazit: Die meiste zeit wird in calculate und dann in getResiduum verbraten.
+
+
+Ergebnisse *ohne* Änderungen des Quellcodes:
+============================================
+
+gcc mit -O0:
+------------
+srun time ./partdiff-seq 1 2 128 1 2 1024 > /dev/null
+54.82user 0.00system 0:55.00elapsed 99%CPU (0avgtext+0avgdata 69504maxresident)k
+40inputs+8outputs (0major+9068minor)pagefaults 0swaps
+
+gcc mit -O1:
+------------
+22.78user 0.02system 0:22.88elapsed 99%CPU (0avgtext+0avgdata 69440maxresident)k
+40inputs+8outputs (0major+6283minor)pagefaults 0swaps
+
+gcc mit -O2:
+------------
+21.92user 0.00system 0:22.00elapsed 99%CPU (0avgtext+0avgdata 69440maxresident)k
+40inputs+8outputs (0major+6202minor)pagefaults 0swaps
+
+21.92user 0.01system 0:22.01elapsed 99%CPU (0avgtext+0avgdata 69424maxresident)k
+40inputs+8outputs (0major+6202minor)pagefaults 0swaps
+
+
+gcc mit O3:
+------------
+21.20user 0.00system 0:21.28elapsed 99%CPU (0avgtext+0avgdata 69456maxresident)k
+48inputs+8outputs (1major+6138minor)pagefaults 0swaps
+
+
+Fazit: Den größeten Effekt bringt -O1 
+
+
+Ergebnisse *mit* Änderungen des Quellcodes:
+============================================
+
+TODO
