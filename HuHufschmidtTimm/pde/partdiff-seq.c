@@ -180,6 +180,7 @@ initMatrices (struct calculation_arguments* arguments, struct options* options)
 /* getResiduum: calculates residuum                                         */
 /* Input: x,y - actual column and row                                       */
 /* ************************************************************************ */
+static
 double
 getResiduum (struct calculation_arguments* arguments, struct options* options, int x, int y, double star)
 {
@@ -223,21 +224,25 @@ calculate (struct calculation_arguments* arguments, struct calculation_results *
 	while (options->term_iteration > 0)
 	{
 		maxresiduum = 0;
-
-		/* over all rows */
-		for (j = 1; j < N; j++)
-		{
-			/* over all columns */
-			for (i = 1; i < N; i++)
+		/*optimising the loop order manually - the compiler could do this with the correct flag*/
+		/* over all columns */
+		for (i = 1; i < N; i++)
 			{
-				star = -Matrix[m2][i-1][j] - Matrix[m2][i][j-1] - Matrix[m2][i][j+1] - Matrix[m2][i+1][j] + 4.0 * Matrix[m2][i][j];
+			double* M1Cache=Matrix[m1][i];
+			double* M2Cache=Matrix[m2][i];
+			/* over all rows */
+			for (j = 1; j < N; j++)
+			{
+				star=(M2Cache-1)[j]-M2Cache[j-1]+ 4.0 * M2Cache[j] - M2Cache[j+1] - (M2Cache+1)[j];
+				/*star = -Matrix[m2][i-1][j] - Matrix[m2][i][j-1] + 4.0 * Matrix[m2][i][j] - Matrix[m2][i][j+1] - Matrix[m2][i+1][j] ;*/
 
 				residuum = getResiduum(arguments, options, i, j, star);
 				korrektur = residuum;
-				residuum = (residuum < 0) ? -residuum : residuum;
+				/*residuum = (residuum < 0) ? -residuum : residuum;*/
 				maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
 
-				Matrix[m1][i][j] = Matrix[m2][i][j] + korrektur;
+				/*Matrix[m1][i][j] = Matrix[m2][i][j] + korrektur;*/
+				M1Cache[j]=M2Cache[j] + korrektur;
 			}
 		}
 

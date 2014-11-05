@@ -91,7 +91,19 @@ $ srun --jobid 69439 time ./partdiff-seq 1 2 128 2 2 1024 > /dev/null
 
 Fazit: 1. Gauss-Seidel ist schneller als Jacobi. 2. Die Stöfunktion stört.
 
+===========================================
+Änderungen am Quellcode:
+00000000000000000000000000000000000000000000
+
+Manuelle Änderung der Reihenfolge der verschachtelten Loops. [severe]
+Reihenfolge der Elemente im Star verändert, sodass die js aus i direkt nebeneinander abgearbeitet werden, Rundungsfehler könnten sich veränderen. [minor]
+Überflüssige Abfrage Entfernt [severe]
+manuelles Vectorisieren der Matrizen für Caching mittels Pointer arithmitik [severe]
+static machen von getresiduum [ultra]
 Ergebnisse *mit* Änderungen des Quellcodes:
 ============================================
 
 TODO
+
+
+
