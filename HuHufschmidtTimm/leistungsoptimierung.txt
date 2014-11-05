@@ -1,11 +1,15 @@
 Ergebnisse mit time und gprof:
 ==============================
+Mit dem Original Makefile:
 $ time ./partdiff-seq 1 2 128 1 2 1024 > /dev/null
 real    1m46.372s
 user    1m45.203s
 sys     0m0.537s
 
 
+Der gleiche Lauf mit modifiziertem Makefile: -pg
+$ time ./partdiff-seq 1 2 128 1 2 1024 > /dev/null
+...
 $ gprof -b ./partdiff-seq
 Flat profile:
 
@@ -29,10 +33,11 @@ Fazit: Die meiste zeit wird in calculate und dann in getResiduum verbraten.
 
 Ergebnisse *ohne* Änderungen des Quellcodes:
 ============================================
+Immer gestartet mit:
+$srun time ./partdiff-seq 1 2 128 1 2 1024 > /dev/null
 
 gcc mit -O0:
 ------------
-srun time ./partdiff-seq 1 2 128 1 2 1024 > /dev/null
 54.82user 0.00system 0:55.00elapsed 99%CPU (0avgtext+0avgdata 69504maxresident)k
 40inputs+8outputs (0major+9068minor)pagefaults 0swaps
 
@@ -50,14 +55,41 @@ gcc mit -O2:
 40inputs+8outputs (0major+6202minor)pagefaults 0swaps
 
 
-gcc mit O3:
+gcc mit -O3:
 ------------
 21.20user 0.00system 0:21.28elapsed 99%CPU (0avgtext+0avgdata 69456maxresident)k
 48inputs+8outputs (1major+6138minor)pagefaults 0swaps
 
-
 Fazit: Den größeten Effekt bringt -O1 
 
+Diverse Parameter getestet mit gcc -O1
+--------------------------------------
+$ salloc
+salloc: Granted job allocation 69439
+$ srun --jobid 69439 hostname
+west2
+
+Gauss-Seidel, ohne Störfunktion
+$ srun --jobid 69439 time ./partdiff-seq 1 1 128 1 2 1024 > /dev/null
+17.90user 0.00system 0:17.97elapsed 99%CPU (0avgtext+0avgdata 36048maxresident)k
+0inputs+8outputs (0major+3117minor)pagefaults 0swaps
+
+Jacobi, ohne Störfunktion:
+$ srun --jobid 69439 time ./partdiff-seq 1 2 128 1 2 1024 > /dev/null
+22.92user 0.01system 0:23.01elapsed 99%CPU (0avgtext+0avgdata 69440maxresident)k
+40inputs+8outputs (0major+6291minor)pagefaults 0swaps
+
+Gauss-Seidel, mit Störfunktion
+$ srun --jobid 69439 time ./partdiff-seq 1 1 128 2 2 1024 > /dev/null
+85.04user 0.00system 1:25.29elapsed 99%CPU (0avgtext+0avgdata 36240maxresident)k
+0inputs+8outputs (0major+6362minor)pagefaults 0swaps
+
+Jacobi, mit Störfunktion:
+$ srun --jobid 69439 time ./partdiff-seq 1 2 128 2 2 1024 > /dev/null
+87.88user 0.00system 1:28.15elapsed 99%CPU (0avgtext+0avgdata 69616maxresident)k
+0inputs+8outputs (0major+12774minor)pagefaults 0swaps
+
+Fazit: 1. Gauss-Seidel ist schneller als Jacobi. 2. Die Stöfunktion stört.
 
 Ergebnisse *mit* Änderungen des Quellcodes:
 ============================================
