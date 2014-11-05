@@ -1,8 +1,11 @@
 #!/bin/bash
-# Script   ~/bin/timescript
-# Uebungen zu HLR,, Blatt 3, Version 04.11.2014
+# Uebungen zu HLR, Blatt 3, Aufgabe 2, Version 05.11.2014
 TIMESTAMP=$( date  +"%d.%m.%Y %H:%M:%S,%N" )
 HOST=$( hostname )
-echo "$HOSTNAME: $TIMESTAMP" >> timescript.out
-echo "$HOSTNAME: $TIMESTAMP - fertig" >> jobscript.out
+
+# Aufgabe 2.1:
+echo "$HOSTNAME: $TIMESTAMP"
+
+# Aufgabe 2.4: Das funktioniert so nicht
+# echo "$HOSTNAME: $TIMESTAMP" >> timescript.out
 
