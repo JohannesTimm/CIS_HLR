@@ -1,5 +1,5 @@
 #!/bin/sh
-# Uebungen zu HLR,, Blatt 3, Aufgabe 2, Version 05.11.2014
+# Uebungen zu HLR,, Blatt 3, Aufgabe 2, Version 06.11.2014
 # SBATCH=sbatch	
 # Time limit is one minute.
 # See "man sbatch" for other time formats.

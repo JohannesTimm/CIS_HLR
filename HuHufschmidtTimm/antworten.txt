@@ -133,11 +133,21 @@ Aufgabe 2
 =========
 2.4.1
 Wenn man das Script mit "sbatch job_script" mehrmals ausführt und sich dann die
-job_script.out anschat, sieht man, dass die verschiedenen Partitionen in 
-unterschiedlicher Reihenfolge allokiert wurden. Ebenso ist die Reihenfolge der 
-Zeilen in timescript.out nicht chronologisch. Beides ist typisch für die asynchrone
-Job-Verarbeitung.
+job_script.out und die timscript.out anschaut, sieht man, dass die verschiedenen
+Partitionen in unterschiedlicher Reihenfolge allokiert wurden. Ebenso ist die
+Reihenfolge der Zeilen in timescript.out nicht chronologisch. Beides ist typisch
+für die asynchrone Job-Verarbeitung.
 
 2.4.2
 Siehe die auskommentierten Zeilen in job_script und timescript. Aber: In 
-timescript.out stehen dann nur noch 9 ... 12 Zeilen, je nach Aufruf.
+timescript.out stehen dann nur noch 9 ... 12 Zeilen, je nach Aufruf. Beispiel:
+west2: 06.11.2014 20:17:07,630434131
+west2: 06.11.2014 20:17:07,631227201
+west2: 06.11.2014 20:17:07,630688044
+west1: 06.11.2014 20:17:07,630970180
+west1: 06.11.2014 20:17:07,630969837
+west4: 06.11.2014 20:17:07,634487361
+west4: 06.11.2014 20:17:07,634832212
+west4: 06.11.2014 20:17:07,634603700
+west4: 06.11.2014 20:17:07,635284065
+<EOF>

@@ -1,11 +1,8 @@
 #!/bin/bash
-# Uebungen zu HLR, Blatt 3, Aufgabe 2, Version 05.11.2014
-TIMESTAMP=$( date  +"%d.%m.%Y %H:%M:%S,%N" )
-HOST=$( hostname )
+# Uebungen zu HLR, Blatt 3, Aufgabe 2, Version 06.11.2014
 
 # Aufgabe 2.1:
-echo "$HOSTNAME: $TIMESTAMP"
+echo "`hostname`: `date +"%d.%m.%Y %H:%M:%S,%N"`"
 
 # Aufgabe 2.4: Das funktioniert so nicht
-# echo "$HOSTNAME: $TIMESTAMP" >> timescript.out
-
+# echo "`hostname`: `date +"%d.%m.%Y %H:%M:%S,%N"`" >> timescript.out
