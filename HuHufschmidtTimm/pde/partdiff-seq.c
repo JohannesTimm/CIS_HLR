@@ -226,12 +226,12 @@ calculate (struct calculation_arguments* arguments, struct calculation_results *
 		maxresiduum = 0;
 		/*optimising the loop order manually - the compiler could do this with the correct flag*/
 		/* over all columns */
-		for (i = 1; i < N; i++)
+		for (i = 1; i < N; ++i)
 			{
 			double* M1Cache=Matrix[m1][i];
 			double* M2Cache=Matrix[m2][i];
 			/* over all rows */
-			for (j = 1; j < N; j++)
+			for (j = 1; j < N; ++j)
 			{
 				star=(M2Cache-1)[j]-M2Cache[j-1]+ 4.0 * M2Cache[j] - M2Cache[j+1] - (M2Cache+1)[j];
 				/*star = -Matrix[m2][i-1][j] - Matrix[m2][i][j-1] + 4.0 * Matrix[m2][i][j] - Matrix[m2][i][j+1] - Matrix[m2][i+1][j] ;*/

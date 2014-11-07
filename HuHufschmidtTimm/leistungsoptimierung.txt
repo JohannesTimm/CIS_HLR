@@ -100,6 +100,7 @@ Reihenfolge der Elemente im Star verändert, sodass die js aus i direkt nebenein
 Überflüssige Abfrage Entfernt [severe]
 manuelles Vectorisieren der Matrizen für Caching mittels Pointer arithmitik [severe]
 static machen von getresiduum [ultra]
+änderen von i++ nach ++i (prä und post increments) [minor]
 Ergebnisse *mit* Änderungen des Quellcodes:
 ============================================
 
