@@ -98,10 +98,13 @@ Fazit: 1. Gauss-Seidel ist schneller als Jacobi. 2. Die Stöfunktion stört.
 Manuelle Änderung der Reihenfolge der verschachtelten Loops. [severe]
 Reihenfolge der Elemente im Star verändert, sodass die js aus i direkt nebeneinander abgearbeitet werden, Rundungsfehler könnten sich veränderen. [minor]
 Überflüssige Abfrage Entfernt [severe]
-Inlining von getResiduum um unnötige if abfrage zu vermeiden und weniger instruktionen und Variablen.
+Inlining von getResiduum um unnötige if Abfragen zu vermeiden und weniger Instruktionen und Variablen.
+Ändern von Division in Multiplikation.
 manuelles Vectorisieren der Matrizen für Caching mittels Pointer arithmitik [severe] -
 static machen von getresiduum [ultra]
 änderen von i++ nach ++i (prä und post increments) [minor]
+
+Mit zusätzlichen Compileroptionen aus der -floop Kategorie lassen sich automatisiert die Schleifen des unoptimierten Programms richtig ordnen. Diese Compileroptionen sind auf dem Cluster aber nicht implementiert. 
 
 Ergebnisse *mit* Änderungen des Quellcodes:
 ============================================
@@ -134,20 +137,26 @@ Das Gleiche mit weiteren Compiler-Optionen:
 
 Gauss-Seidel, ohne Störfunktion
 $ srun time ./partdiff-seq 1 1 128 1 2 1024
-9.86user 0.00system 0:09.90elapsed
+9.86user 0.00system 0:09.90elapsed   (41.6)
 
 Jacobi, ohne Störfunktion:
 $ srun time ./partdiff-seq 1 2 128 1 2 1024
-2.57user 0.00system 0:02.59elapsed 99%CPU
+2.57user 0.00system 0:02.59elapsed    (50.3)
 
 Gauss-Seidel, mit Störfunktion
 $ srun time ./partdiff-seq 1 1 128 2 2 1024
-34.48user 0.02system 0:34.61elapsed
+34.48user 0.02system 0:34.61elapsed  (44.7)
 
 Jacobi, mit Störfunktion:
 $ srun time ./partdiff-seq 1 2 128 2 2 1024
-34.80user 0.11system 0:35.02elapsed
+34.80user 0.11system 0:35.02elapsed  (49.3)
 
+
+Speedups: 
+Gauss-Seidel Ohne Störfkt : 4.2x
+Jacobi Ohne Störfkt: 19.6x
+Gauss-Seidel mit Störfkt: 1.3x
+Jacobi mit Störfkt: 1.4x
 
 
 
