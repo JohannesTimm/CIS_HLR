@@ -14,8 +14,8 @@ $ gprof -b ./partdiff-seq
 Flat profile:
 
 Each sample counts as 0.01 seconds.
-  %   cumulative   self              self     total           
- time   seconds   seconds    calls   s/call   s/call  name    
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls   s/call   s/call  name
  96.45     81.21    81.21        1    81.21    84.08  calculate
   3.41     84.08     2.87 1088472064     0.00     0.00  getResiduum
   0.26     84.30     0.22        1     0.22     0.22  initMatrices
@@ -60,7 +60,7 @@ gcc mit -O3:
 21.20user 0.00system 0:21.28elapsed 99%CPU (0avgtext+0avgdata 69456maxresident)k
 48inputs+8outputs (1major+6138minor)pagefaults 0swaps
 
-Fazit: Den größeten Effekt bringt -O1 
+Fazit: Den größeten Effekt bringt -O1
 
 Diverse Parameter getestet mit gcc -O1
 --------------------------------------
@@ -99,13 +99,13 @@ Manuelle Änderung der Reihenfolge der verschachtelten Loops. [severe]
 Reihenfolge der Elemente im Star verändert, sodass die js aus i direkt nebeneinander abgearbeitet werden, Rundungsfehler könnten sich veränderen. [minor]
 Überflüssige Abfrage Entfernt [severe]
 Inlining von getResiduum um unnötige if abfrage zu vermeiden und weniger instruktionen und Variablen.
-manuelles Vectorisieren der Matrizen für Caching mittels Pointer arithmitik [severe] - 
+manuelles Vectorisieren der Matrizen für Caching mittels Pointer arithmitik [severe] -
 static machen von getresiduum [ultra]
 änderen von i++ nach ++i (prä und post increments) [minor]
 
 Ergebnisse *mit* Änderungen des Quellcodes:
 ============================================
-Compiler-Optionen: 
+Compiler-Optionen:
   CFLAGS = -std=c99 -pedantic -Wall -Wextra -O1
   ---------------------------------------------
 In Klammern sind jeweils die Zeiten ohne Quelltext-Optimierung angegeben.
@@ -125,5 +125,29 @@ $ srun time ./partdiff-seq 1 1 128 2 2 1024
 Jacobi, mit Störfunktion:
 $ srun time ./partdiff-seq 1 2 128 2 2 1024
 51.97user 0.08system 0:52.21elapsed (87.88)
+
+
+
+Das Gleiche mit weiteren Compiler-Optionen:
+  CFLAGS = -std=c99 -pedantic -Wall -Wextra -O3 -Ofast -msse2
+  -----------------------------------------------------------
+
+Gauss-Seidel, ohne Störfunktion
+$ srun time ./partdiff-seq 1 1 128 1 2 1024
+9.86user 0.00system 0:09.90elapsed
+
+Jacobi, ohne Störfunktion:
+$ srun time ./partdiff-seq 1 2 128 1 2 1024
+2.57user 0.00system 0:02.59elapsed 99%CPU
+
+Gauss-Seidel, mit Störfunktion
+$ srun time ./partdiff-seq 1 1 128 2 2 1024
+34.48user 0.02system 0:34.61elapsed
+
+Jacobi, mit Störfunktion:
+$ srun time ./partdiff-seq 1 2 128 2 2 1024
+34.80user 0.11system 0:35.02elapsed
+
+
 
 
