@@ -105,8 +105,25 @@ static machen von getresiduum [ultra]
 
 Ergebnisse *mit* Änderungen des Quellcodes:
 ============================================
+Compiler-Optionen: 
+  CFLAGS = -std=c99 -pedantic -Wall -Wextra -O1
+  ---------------------------------------------
+In Klammern sind jeweils die Zeiten ohne Quelltext-Optimierung angegeben.
 
-TODO
+Gauss-Seidel, ohne Störfunktion
+$ srun time ./partdiff-seq 1 1 128 1 2 1024
+11.12user 0.01system 0:11.42elapsed (17.90)
 
+Jacobi, ohne Störfunktion:
+$ srun time ./partdiff-seq 1 2 128 1 2 1024
+4.32user 0.01system 0:04.35elapsed (22.92)
+
+Gauss-Seidel, mit Störfunktion
+$ srun time ./partdiff-seq 1 1 128 2 2 1024
+51.76user 0.05system 0:51.97elapsed (85.04)
+
+Jacobi, mit Störfunktion:
+$ srun time ./partdiff-seq 1 2 128 2 2 1024
+51.97user 0.08system 0:52.21elapsed (87.88)
 
 
