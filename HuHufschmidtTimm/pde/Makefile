@@ -2,7 +2,8 @@
 CC = gcc
 
 # Compiler flags, paths and libraries
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -O3 -Ofast -msse2 -mavx -floop-strip-mine -floop-block
+#CFLAGS = -std=c99 -pedantic -Wall -Wextra -O3 -Ofast -msse2 -mavx -floop-strip-mine -floop-block
+CFLAGS = -std=c99 -pedantic -Wall -Wextra -O3 -Ofast -msse2 -mavx
 #CFLAGS = -std=c99 -pedantic -Wall -Wextra -O3 -Ofast -floop-strip-mine -floop-block -g
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
