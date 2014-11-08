@@ -98,9 +98,11 @@ Fazit: 1. Gauss-Seidel ist schneller als Jacobi. 2. Die Stöfunktion stört.
 Manuelle Änderung der Reihenfolge der verschachtelten Loops. [severe]
 Reihenfolge der Elemente im Star verändert, sodass die js aus i direkt nebeneinander abgearbeitet werden, Rundungsfehler könnten sich veränderen. [minor]
 Überflüssige Abfrage Entfernt [severe]
-manuelles Vectorisieren der Matrizen für Caching mittels Pointer arithmitik [severe]
+Inlining von getResiduum um unnötige if abfrage zu vermeiden und weniger instruktionen und Variablen.
+manuelles Vectorisieren der Matrizen für Caching mittels Pointer arithmitik [severe] - 
 static machen von getresiduum [ultra]
 änderen von i++ nach ++i (prä und post increments) [minor]
+
 Ergebnisse *mit* Änderungen des Quellcodes:
 ============================================
 
