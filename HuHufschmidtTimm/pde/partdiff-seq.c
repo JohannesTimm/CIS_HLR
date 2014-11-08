@@ -207,7 +207,7 @@ calculate (struct calculation_arguments* arguments, struct calculation_results *
 	//double korrektur;
 	double residuum;                            /* residuum of current iteration                  */
 	double maxresiduum;                         /* maximum residuum value of a slave in iteration */
-
+	double h = arguments->h;
 	int N = arguments->N;
 	double*** Matrix = arguments->Matrix;
 
@@ -237,8 +237,8 @@ calculate (struct calculation_arguments* arguments, struct calculation_results *
 				/* over all rows */
 				for (j = 1; j < N; ++j)
 					{
-					residuum= ((M2Cache-1)[j] +       M2Cache[j-1]    -   4.0 * M2Cache[j]     +     M2Cache[j+1]    +   (M2Cache+1)[j])/4.0;
-				     //residuum = (Matrix[m2][i-1][j] + Matrix[m2][i][j-1] - 4.0 * Matrix[m2][i][j] + Matrix[m2][i][j+1] + Matrix[m2][i+1][j])/4.0 ;
+					residuum= ((M2Cache-1)[j] +       M2Cache[j-1]    -   4.0 * M2Cache[j]     +     M2Cache[j+1]    +   (M2Cache+1)[j])*0.25;
+				     //residuum = (Matrix[m2][i-1][j] + Matrix[m2][i][j-1] - 4.0 * Matrix[m2][i][j] + Matrix[m2][i][j+1] + Matrix[m2][i+1][j])*0.25 ;
 	
 					/*residuum = getResiduum(arguments, options, i, j, star);*/
 					//Matrix[m1][i][j] = Matrix[m2][i][j] + residuum;
@@ -268,7 +268,7 @@ calculate (struct calculation_arguments* arguments, struct calculation_results *
 	
 	
 	
-	residuum= ((TWO_PI_SQUARE * sin((double)(j) * PI * arguments->h) * sin((double)(i) * PI * arguments->h) * arguments->h * arguments->h +((M2Cache-1)[j] +       M2Cache[j-1]    -   4.0 * M2Cache[j]     +     M2Cache[j+1]    +   (M2Cache+1)[j]))/4.0);
+					residuum= ((TWO_PI_SQUARE * sin((double)(j) * PI * h) * sin((double)(i) * PI * h) * h * h + ((M2Cache-1)[j] + M2Cache[j-1]  - 4.0 * M2Cache[j] + M2Cache[j+1] + (M2Cache+1)[j])) * 0.25);
 	
 					/*residuum = getResiduum(arguments, options, i, j, star);*/
 					/*Matrix[m1][i][j] = Matrix[m2][i][j] + residuum;*/
