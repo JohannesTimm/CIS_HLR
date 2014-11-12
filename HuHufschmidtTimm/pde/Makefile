@@ -16,7 +16,7 @@ OBJS = partdiff-openmp.o askparams.o
 # Targets ...
 all: partdiff-openmp
 
-partdiff-seq: $(OBJS) Makefile
+partdiff-openmp: $(OBJS) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:
