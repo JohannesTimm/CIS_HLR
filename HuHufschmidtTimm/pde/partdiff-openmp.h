@@ -34,6 +34,7 @@
 #define TERM_PREC		1
 #define TERM_ITER		2
 
+
 struct options
 {
 	uint64_t number;         /* Number of threads                              */
