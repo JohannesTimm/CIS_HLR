@@ -232,6 +232,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		//int width;
 		//int i_start;
 		//int i_end;
+		//omp_set_nested(1);
 		//num_threads = omp_get_num_threads();
 		//my_thread = omp_get_thread_num();
 		//width = (int) (N-1) / num_threads;
@@ -257,9 +258,11 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		//}
 		
 		/* over all rows */
-		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum) num_threads(12)
+		#pragma omp parallel 
+		#pragma omp for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum) num_threads(12)
 		/* Umsetzung der Datenaufteilungen*/
 		//#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(12)
+		//#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(2)
 		for (i = 1; i < N; i++)
 		//for (i = i_start; i < i_end; i++)
 		{
@@ -271,6 +274,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 			}
 
 			/* over all columns */
+			//#pragma omp for default(shared) private(j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(6)
 			for (j = 1; j < N; j++)
 			{
 				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
