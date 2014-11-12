@@ -7,14 +7,14 @@ CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb -fopenmp
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
 
-OBJS = partdiff-seq.o askparams.o
+OBJS = partdiff-openmp.o askparams.o
 
 # Rule to create *.o from *.c
 .c.o:
 	$(CC) -c $(CFLAGS) $*.c
 
 # Targets ...
-all: partdiff-seq
+all: partdiff-openmp
 
 partdiff-seq: $(OBJS) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
@@ -22,6 +22,6 @@ partdiff-seq: $(OBJS) Makefile
 clean:
 	$(RM) *.o *~
 
-partdiff-seq.o: partdiff-seq.c Makefile
+partdiff-seq.o: partdiff-openmp.c Makefile
 
 askparams.o: askparams.c Makefile

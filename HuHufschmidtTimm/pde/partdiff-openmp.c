@@ -29,7 +29,7 @@
 
 #include <omp.h>  // HuHufschmidtTimm
 
-#include "partdiff-seq.h"
+#include "partdiff-openmp.h"
 
 struct calculation_arguments
 {
