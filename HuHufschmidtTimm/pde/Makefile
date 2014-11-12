@@ -16,12 +16,12 @@ OBJS = partdiff-openmp.o askparams.o
 # Targets ...
 all: partdiff-openmp
 
-partdiff-seq: $(OBJS) Makefile
+partdiff-openmp: $(OBJS) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:
 	$(RM) *.o *~
 
-partdiff-seq.o: partdiff-openmp.c Makefile
+partdiff-openmp.o: partdiff-openmp.c Makefile
 
 askparams.o: askparams.c Makefile
