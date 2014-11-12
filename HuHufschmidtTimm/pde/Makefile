@@ -22,10 +22,6 @@ partdiff-openmp: $(OBJS) Makefile
 clean:
 	$(RM) *.o *~
 
-<<<<<<< HEAD
 partdiff-openmp.o: partdiff-openmp.c Makefile
-=======
-partdiff-seq.o: partdiff-openmp.c Makefile
->>>>>>> 2bb028815b10846b98b843253d55f53967baa410
 
 askparams.o: askparams.c Makefile
