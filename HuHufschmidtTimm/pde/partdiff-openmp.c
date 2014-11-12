@@ -224,10 +224,44 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		double** Matrix_In  = arguments->Matrix[m2];
 
 		maxresiduum = 0;
-
+		
+		/* Umsetzung der Datenaufteilungen*/
+		
+		//int num_threads;
+		//int my_thread;
+		//int width;
+		//int i_start;
+		//int i_end;
+		//num_threads = omp_get_num_threads();
+		//my_thread = omp_get_thread_num();
+		//width = (int) (N-1) / num_threads;
+		
+		//if(((N-1) % num_threads) == 0)
+		//{
+			//i_start = 1 + my_thread * width;
+			//i_end = i_start + width;
+		//}
+		
+		//if(((N-1) % num_threads) != 0)
+		//{
+			//if(my_thread == num_threads-1)
+			//{
+				//i_start = 1 + my_thread * width;
+				//i_end = N;
+			//}
+			//else
+			//{
+				//i_start = 1 + my_thread * width;
+				//i_end = i_start + width;
+			//}
+		//}
+		
 		/* over all rows */
 		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum) num_threads(12)
+		/* Umsetzung der Datenaufteilungen*/
+		//#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(12)
 		for (i = 1; i < N; i++)
+		//for (i = i_start; i < i_end; i++)
 		{
 			double fpisin_i = 0.0;
 
