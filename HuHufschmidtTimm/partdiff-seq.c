@@ -27,6 +27,8 @@
 #include <malloc.h>
 #include <sys/time.h>
 
+#include <omp.h>  // HuHufschmidtTimm
+
 #include "partdiff-seq.h"
 
 struct calculation_arguments
