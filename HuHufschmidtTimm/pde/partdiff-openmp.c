@@ -19,6 +19,10 @@
 /* ************************************************************************ */
 #define _POSIX_C_SOURCE 200809L
 
+#ifndef AUFTEILUNG
+#define AUFTEILUNG 1  // 1 = Zeilenweise, 2 = Spaltenweise, 3 = Elementweise
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -224,7 +228,31 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		double** Matrix_In  = arguments->Matrix[m2];
 
 		maxresiduum = 0;
-		
+
+#if (AUFTEILUNG == 1)
+// 1 = Zeilenweise Aufteilung
+// printf("Zeilenweise Aufteilung\n"); // Nur zum Testen
+// TODO: Entsprechednen Code hierher verschieben
+
+
+#elif (AUFTEILUNG == 2) 
+// 2 = Spaltenweise Aufteilung
+// printf("Spaltenweise Aufteilung\n"); // Nur zum Testen
+// TODO: Entsprechednen Code hierher verschieben
+
+
+#elif  (AUFTEILUNG == 3) 
+// 3 = Elementweise Aufteilung
+// printf("Elementweise Aufteilung\n");  // Nur zum Testen
+// TODO: Entsprechednen Code hierher verschieben
+
+
+#else
+// Error
+#endif
+// Ab hier wieder gemeinesamer Code für alle Aufteilungen.
+
+
 		/* Umsetzung der Datenaufteilungen*/
 		
 		//int num_threads;
