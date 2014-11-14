@@ -3,7 +3,7 @@ CC = gcc
 
 # Compiler flags, paths and libraries
 # CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb -fopenmp
+CFLAGS = -std=c99 -pedantic -Wall -Wextra -O3 -ggdb -fopenmp
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
 
@@ -18,7 +18,7 @@ partdiff-openmp: $(OBJS) partdiff-openmp.o
 	$(CC) $(LFLAGS) -o $@ $(OBJS) partdiff-openmp.o  $(LIBS)
 
 partdiff-openmp.o: partdiff-openmp.c
-	$(CC) -c $(CFLAGS) partdiff-openmp.c
+	$(CC) -c $(CFLAGS) -DAUFTEILUNG=0  partdiff-openmp.c
 
 partdiff-openmp-zeilen: $(OBJS) partdiff-openmp-zeilen.o 
 	$(CC) $(LFLAGS) -o $@ $(OBJS) partdiff-openmp-zeilen.o  $(LIBS)
