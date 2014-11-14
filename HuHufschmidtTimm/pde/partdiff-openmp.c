@@ -204,10 +204,6 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 	int term_iteration = options->term_iteration;
 	
-	int i_start = 1, i_end = N, j_start = 1, j_end = N;
-	int j_start_element;
-	int j_end_element;
-
 	/* initialize m1 and m2 depending on algorithm */
 	if (options->method == METH_JACOBI)
 	{
@@ -235,15 +231,40 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 	#if (AUFTEILUNG == 0)
 	// 0 = Keine Aufteilung, Sequentieller Code
-		i_start = 1;
-		i_end = N;
-		j_start = 1;
-		j_end = N;
-	
+		for (i = 1; i < N; i++)
+		{
+			double fpisin_i = 0.0;
+
+			if (options->inf_func == FUNC_FPISIN)
+			{
+				fpisin_i = fpisin * sin(pih * (double)i);
+			}
+
+			/* over all columns */
+			for (j = 1; j < N; j++)
+			{
+				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+
+				if (options->inf_func == FUNC_FPISIN)
+				{
+					star += fpisin_i * sin(pih * (double)j);
+				}
+
+				if (options->termination == TERM_PREC || term_iteration == 1)
+				{
+					residuum = Matrix_In[i][j] - star;
+					residuum = (residuum < 0) ? -residuum : residuum;
+					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+				}
+
+				Matrix_Out[i][j] = star;
+			}
+		}
+		
 	#elif (AUFTEILUNG == 1)
 	// 1 = Zeilenweise Aufteilung
 	// printf("Zeilenweise Aufteilung\n"); // Nur zum Testen
-		
+		int i_start, i_end;
 		int num_threads;
 		int my_thread;
 		int width;
@@ -263,11 +284,41 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 			i_start = 1 + my_thread * width;
 			i_end = i_start + width;
 		}
-		j_start_element = 1;
-		j_end_element = N;	
+		
+		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(12)
+		for (i = i_start; i < i_end; i++)
+		{
+			double fpisin_i = 0.0;
+
+			if (options->inf_func == FUNC_FPISIN)
+			{
+				fpisin_i = fpisin * sin(pih * (double)i);
+			}
+
+			/* over all columns */
+			for (j = 1; j < N; j++)
+			{
+				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+
+				if (options->inf_func == FUNC_FPISIN)
+				{
+					star += fpisin_i * sin(pih * (double)j);
+				}
+
+				if (options->termination == TERM_PREC || term_iteration == 1)
+				{
+					residuum = Matrix_In[i][j] - star;
+					residuum = (residuum < 0) ? -residuum : residuum;
+					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+				}
+
+				Matrix_Out[i][j] = star;
+			}
+		}	
 	#elif (AUFTEILUNG == 2) 
 	// 2 = Spaltenweise Aufteilung
 	// printf("Spaltenweise Aufteilung\n"); // Nur zum Testen
+		int j_start, j_end;
 		int num_threads;
 		int my_thread;
 		int width;
@@ -285,11 +336,42 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 			j_start = 1 + my_thread * width;
 			j_end = j_start + width;
 		}
-		j_start_element = j_start;
-		j_end_element = j_end;
+		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,j_start,j_end) reduction(+:maxresiduum) num_threads(12)
+		for (i = 1; i < N; i++)
+		{
+			double fpisin_i = 0.0;
+
+			if (options->inf_func == FUNC_FPISIN)
+			{
+				fpisin_i = fpisin * sin(pih * (double)i);
+			}
+
+			/* over all columns */
+			for (j = j_start; j < j_end; j++)
+			{
+				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+
+				if (options->inf_func == FUNC_FPISIN)
+				{
+					star += fpisin_i * sin(pih * (double)j);
+				}
+
+				if (options->termination == TERM_PREC || term_iteration == 1)
+				{
+					residuum = Matrix_In[i][j] - star;
+					residuum = (residuum < 0) ? -residuum : residuum;
+					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+				}
+
+				Matrix_Out[i][j] = star;
+			}
+		}
 	#elif  (AUFTEILUNG == 3) 
 	// 3 = Elementweise Aufteilung
 	// printf("Elementweise Aufteilung\n");  // Nur zum Testen
+		int i_start=1,i_end=N,j_start=1,j_end=N;
+		int j_start_element;
+		int j_end_element;
 		int elements_per_thread;
 		int num_threads;
 		int my_thread;
@@ -325,15 +407,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 				j_end_element = (elements_per_thread - (N - j_start)) % (N-1) + 1;
 			}
 		}
-
-
-	#else
-	// Error	
-	#endif
-	// Ab hier wieder gemeinesamer Code für alle Aufteilungen.
-	/* over all rows */
-		
-		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end,j_start,j_end) reduction(+:maxresiduum) num_threads(12)
+ 		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end,j_start,j_end) reduction(+:maxresiduum) num_threads(12)
 		for (i = i_start; i < i_end; i++)
 		{
 			double fpisin_i = 0.0;
@@ -344,7 +418,6 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 			}
 
 			/* over all columns */
-			//#pragma omp parallel for default(shared) private(j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(6)
 			if(i == i_start)	//this section ist for elementweise Aufteilung.
 			{	
 				j_start = j_start_element;	
@@ -373,6 +446,11 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 				Matrix_Out[i][j] = star;
 			}
 		}
+
+	#else
+	// Error	
+	#endif
+	// Ab hier wieder gemeinesamer Code für alle Aufteilungen.
 		results->stat_iteration++;
 		results->stat_precision = maxresiduum;
 
