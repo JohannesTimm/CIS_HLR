@@ -205,6 +205,8 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 	int term_iteration = options->term_iteration;
 	
 	int i_start = 1, i_end = N, j_start = 1, j_end = N;
+	int j_start_element;
+	int j_end_element;
 
 	/* initialize m1 and m2 depending on algorithm */
 	if (options->method == METH_JACOBI)
@@ -233,7 +235,10 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 	#if (AUFTEILUNG == 0)
 	// 0 = Keine Aufteilung, Sequentieller Code
-
+		i_start = 1;
+		i_end = N;
+		j_start = 1;
+		j_end = N;
 	
 	#elif (AUFTEILUNG == 1)
 	// 1 = Zeilenweise Aufteilung
@@ -258,7 +263,8 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 			i_start = 1 + my_thread * width;
 			i_end = i_start + width;
 		}
-		
+		j_start_element = 1;
+		j_end_element = N;	
 	#elif (AUFTEILUNG == 2) 
 	// 2 = Spaltenweise Aufteilung
 	// printf("Spaltenweise Aufteilung\n"); // Nur zum Testen
@@ -279,11 +285,46 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 			j_start = 1 + my_thread * width;
 			j_end = j_start + width;
 		}
-
+		j_start_element = j_start;
+		j_end_element = j_end;
 	#elif  (AUFTEILUNG == 3) 
 	// 3 = Elementweise Aufteilung
 	// printf("Elementweise Aufteilung\n");  // Nur zum Testen
-	// TODO: Entsprechednen Code hierher verschieben
+		int elements_per_thread;
+		int num_threads;
+		int my_thread;
+		int num_elements = (N-1) * (N-1);
+		
+		num_threads = omp_get_num_threads();
+		my_thread = omp_get_thread_num();
+		elements_per_thread = (int)(num_elements / num_threads);	//calculate how many elements can a thread obtain.
+	
+		i_start = (int)(my_thread * elements_per_thread / (N-1) + 1);	//decide i_start for each thread.
+		if(((my_thread + 1) * elements_per_thread) % (N-1) == 0)	//decide i_end for each thread.i_end always related to the i_start of next thread.
+		{															//but notice that if the last element just at the end of the row.
+			i_end = (int)((my_thread + 1) * elements_per_thread / (N-1) + 1);
+		}
+		else
+		{
+			i_end = (int)((my_thread + 1) * elements_per_thread / (N-1) + 2);
+		}
+		
+		j_start_element = my_thread * elements_per_thread - (int)(my_thread * elements_per_thread / (N-1)) * (N-1) + 1;//decide j_start, only for first row of a thread																													
+		if(my_thread == num_threads - 1 )																			//decide j_end, only for last row of a thread.
+		{	
+			j_end_element = N;
+		}
+		else
+		{																												
+			if( ( (elements_per_thread - (N - j_start)) % (N-1) ) == 0)														
+			{
+				j_end_element = N;	
+			}
+			else
+			{
+				j_end_element = (elements_per_thread - (N - j_start)) % (N-1) + 1;
+			}
+		}
 
 
 	#else
@@ -304,6 +345,15 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 			/* over all columns */
 			//#pragma omp parallel for default(shared) private(j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(6)
+			if(i == i_start)	//this section ist for elementweise Aufteilung.
+			{	
+				j_start = j_start_element;	
+			}
+			if(i == i_end-1 )
+			{
+				j_end = j_end_element;
+			}
+				
 			for (j = j_start; j < j_end; j++)
 			{
 				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
