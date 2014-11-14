@@ -203,6 +203,8 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 	double fpisin = 0.0;
 
 	int term_iteration = options->term_iteration;
+	
+	int i_start = 1, i_end = N, j_start = 1, j_end = N;
 
 	/* initialize m1 and m2 depending on algorithm */
 	if (options->method == METH_JACOBI)
@@ -229,70 +231,67 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 		maxresiduum = 0;
 
-#if (AUFTEILUNG == 1)
-// 1 = Zeilenweise Aufteilung
-// printf("Zeilenweise Aufteilung\n"); // Nur zum Testen
-// TODO: Entsprechednen Code hierher verschieben
 
-
-#elif (AUFTEILUNG == 2) 
-// 2 = Spaltenweise Aufteilung
-// printf("Spaltenweise Aufteilung\n"); // Nur zum Testen
-// TODO: Entsprechednen Code hierher verschieben
-
-
-#elif  (AUFTEILUNG == 3) 
-// 3 = Elementweise Aufteilung
-// printf("Elementweise Aufteilung\n");  // Nur zum Testen
-// TODO: Entsprechednen Code hierher verschieben
-
-
-#else
-// Error
-#endif
-// Ab hier wieder gemeinesamer Code für alle Aufteilungen.
-
-
-		/* Umsetzung der Datenaufteilungen*/
+	
+	#if (AUFTEILUNG == 1)
+	// 1 = Zeilenweise Aufteilung
+		printf("Zeilenweise Aufteilung\n"); // Nur zum Testen
 		
-		//int num_threads;
-		//int my_thread;
-		//int width;
-		//int i_start;
-		//int i_end;
-		//omp_set_nested(1);
-		//num_threads = omp_get_num_threads();
-		//my_thread = omp_get_thread_num();
-		//width = (int) (N-1) / num_threads;
+		int num_threads;
+		int my_thread;
+		int width;
+		omp_set_nested(1);
+		num_threads = omp_get_num_threads();
+		my_thread = omp_get_thread_num();
+		width = (int) (N-1) / num_threads;
 		
-		//if(((N-1) % num_threads) == 0)
-		//{
-			//i_start = 1 + my_thread * width;
-			//i_end = i_start + width;
-		//}
+		if(my_thread == num_threads-1)
 		
-		//if(((N-1) % num_threads) != 0)
-		//{
-			//if(my_thread == num_threads-1)
-			//{
-				//i_start = 1 + my_thread * width;
-				//i_end = N;
-			//}
-			//else
-			//{
-				//i_start = 1 + my_thread * width;
-				//i_end = i_start + width;
-			//}
-		//}
+		{
+			i_start = 1 + my_thread * width;
+			i_end = N;
+		}
+		else
+		{
+			i_start = 1 + my_thread * width;
+			i_end = i_start + width;
+		}
 		
-		/* over all rows */
+	#elif (AUFTEILUNG == 2) 
+	// 2 = Spaltenweise Aufteilung
+	// printf("Spaltenweise Aufteilung\n"); // Nur zum Testen
+		int num_threads;
+		int my_thread;
+		int width;
+		num_threads = omp_get_num_threads();
+		my_thread = omp_get_thread_num();
+		width = (int) (N-1) / num_threads;
+	
+		if(my_thread == num_threads-1)
+		{
+			j_start = 1 + my_thread * width;
+			j_end = N;
+		}
+		else
+		{
+			j_start = 1 + my_thread * width;
+			j_end = j_start + width;
+		}
+
+	#elif  (AUFTEILUNG == 3) 
+	// 3 = Elementweise Aufteilung
+	// printf("Elementweise Aufteilung\n");  // Nur zum Testen
+	// TODO: Entsprechednen Code hierher verschieben
+
+
+	#else
+	// Error	
+	#endif
+	// Ab hier wieder gemeinesamer Code für alle Aufteilungen.
+	/* over all rows */
 		
-		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum) num_threads(12)
-		/* Umsetzung der Datenaufteilungen*/
-		//#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(12)
-		//#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(2)
-		for (i = 1; i < N; i++)
-		//for (i = i_start; i < i_end; i++)
+		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end,j_start,j_end) reduction(+:maxresiduum) num_threads(12)
+		for (i = i_start; i < i_end; i++)
 		{
 			double fpisin_i = 0.0;
 
@@ -303,7 +302,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 			/* over all columns */
 			//#pragma omp parallel for default(shared) private(j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum) num_threads(6)
-			for (j = 1; j < N; j++)
+			for (j = j_start; j < j_end; j++)
 			{
 				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
 
