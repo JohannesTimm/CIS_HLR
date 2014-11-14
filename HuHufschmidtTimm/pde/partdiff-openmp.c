@@ -20,7 +20,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #ifndef AUFTEILUNG
-#define AUFTEILUNG 1  // 1 = Zeilenweise, 2 = Spaltenweise, 3 = Elementweise
+#define AUFTEILUNG 0  // 0 = sequentiell, 1 = Zeilenweise, 2 = Spaltenweise, 3 = Elementweise
 #endif
 
 #include <stdio.h>
@@ -231,11 +231,13 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 		maxresiduum = 0;
 
+	#if (AUFTEILUNG == 0)
+	// 0 = Keine Aufteilung, Sequentieller Code
 
 	
-	#if (AUFTEILUNG == 1)
+	#elif (AUFTEILUNG == 1)
 	// 1 = Zeilenweise Aufteilung
-		printf("Zeilenweise Aufteilung\n"); // Nur zum Testen
+	// printf("Zeilenweise Aufteilung\n"); // Nur zum Testen
 		
 		int num_threads;
 		int my_thread;
