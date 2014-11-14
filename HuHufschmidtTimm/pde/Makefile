@@ -7,21 +7,40 @@ CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb -fopenmp
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
 
-OBJS = partdiff-openmp.o askparams.o
+PROGS = partdiff-openmp partdiff-openmp-zeilen partdiff-openmp-spalten partdiff-openmp-element
 
-# Rule to create *.o from *.c
-.c.o:
-	$(CC) -c $(CFLAGS) $*.c
+OBJS = askparams.o
 
 # Targets ...
-all: partdiff-openmp
+all: $(PROGS)
 
-partdiff-openmp: $(OBJS) Makefile
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
+partdiff-openmp: $(OBJS) partdiff-openmp.o 
+	$(CC) $(LFLAGS) -o $@ $(OBJS) partdiff-openmp.o  $(LIBS)
+
+partdiff-openmp.o: partdiff-openmp.c
+	$(CC) -c $(CFLAGS) partdiff-openmp.c
+
+partdiff-openmp-zeilen: $(OBJS) partdiff-openmp-zeilen.o 
+	$(CC) $(LFLAGS) -o $@ $(OBJS) partdiff-openmp-zeilen.o  $(LIBS)
+
+partdiff-openmp-zeilen.o: partdiff-openmp.c
+	$(CC) -c $(CFLAGS) -DAUFTEILUNG=1 -o partdiff-openmp-zeilen.o  partdiff-openmp.c
+
+partdiff-openmp-spalten: $(OBJS) partdiff-openmp-spalten.o 
+	$(CC) $(LFLAGS) -o $@ $(OBJS) partdiff-openmp-spalten.o  $(LIBS)
+
+partdiff-openmp-spalten.o: partdiff-openmp.c
+	$(CC) -c $(CFLAGS) -DAUFTEILUNG=2 -o partdiff-openmp-spalten.o  partdiff-openmp.c
+
+partdiff-openmp-element: $(OBJS) partdiff-openmp-element.o 
+	$(CC) $(LFLAGS) -o $@ $(OBJS) partdiff-openmp-element.o  $(LIBS)
+
+partdiff-openmp-element.o: partdiff-openmp.c
+	$(CC) -c $(CFLAGS) -DAUFTEILUNG=3 -o partdiff-openmp-element.o  partdiff-openmp.c
+
+askparams.o: askparams.c
+	$(CC) -c $(CFLAGS) askparams.c
 
 clean:
-	$(RM) *.o *~
+	$(RM) *.o *~ $(PROGS)
 
-partdiff-openmp.o: partdiff-openmp.c Makefile
-
-askparams.o: askparams.c Makefile
