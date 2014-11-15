@@ -6,6 +6,9 @@ CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb -fopenmp
 CFLAGSMP = -std=c99 -pedantic -Wall -Wextra -O3 -ggdb -fopenmp
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
+nthreads=12
+sched="static,4"
+interlines=512
 
 PROGS = partdiff-seq partdiff-openmp-zeilen partdiff-openmp-spalten partdiff-openmp-element
 
@@ -37,6 +40,10 @@ partdiff-openmp-element: $(OBJS) partdiff-openmp-element.o
 
 partdiff-openmp-element.o: partdiff-openmp.c
 	$(CC) -c $(CFLAGSMP) -DAUFTEILUNG=3 -o partdiff-openmp-element.o  partdiff-openmp.c
+	
+partdiff-openmp-scedule: partdiff-openmp-zeilen
+	  export OMP_NUM_THREADS=$(nthreads); export OMP_SCHEDULE=$(sched);export=KMP_AFFINITY="verbose,compact,1"; ./partdiff-openmp 1 2 $(interlines) 2 2 2000
+
 
 askparams.o: askparams.c
 	$(CC) -c $(CFLAGS) askparams.c
