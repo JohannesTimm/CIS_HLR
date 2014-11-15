@@ -287,7 +287,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		
 		double* fpisin_i;
 		fpisin_i = (double*)malloc(N * sizeof(double));
-		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) num_threads(12)
+		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) 
 		{
 		
 			if (options->inf_func == FUNC_FPISIN)
@@ -349,7 +349,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		
 		double* fpisin_i;
 		fpisin_i = (double*)malloc(N * sizeof(double));
-		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) num_threads(12)
+		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) 
 		{
 		
 			if (options->inf_func == FUNC_FPISIN)
@@ -429,7 +429,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 			}
 		}
  	
-		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end,j_start,j_end) reduction(+:maxresiduum) num_threads(12)
+		#pragma omp parallel for default(shared) private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end,j_start,j_end) reduction(+:maxresiduum) 
 		for (i = i_start; i < i_end; i++)
 		{
 			double fpisin_i = 0.0;
