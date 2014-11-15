@@ -15,7 +15,7 @@ OBJS = askparams.o
 all: $(PROGS)
 
 partdiff-seq: $(OBJS) partdiff-openmp.o 
-	$(CC) $(LFLAGS) -o partdiff-seq  $(OBJS) partdiff-openmp.o  $(LIBS)
+	$(CC) $(CFLAGS) -o partdiff-seq  $(OBJS) partdiff-openmp.o  $(LIBS)
 
 partdiff-openmp.o: partdiff-openmp.c
 	$(CC) -c $(CFLAGSMP)  -DAUFTEILUNG=0 -o partdiff-openmp.o partdiff-openmp.c
