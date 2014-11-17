@@ -388,7 +388,7 @@ main (int argc, char** argv)
 /* ************************* */
 /* get parameters */
 /* ************************* */
-	AskParams(&options, argc, argv);
+  AskParams(&options, argc, argv);
   // number = (int) options->number;
   #if (MODE==0)
     // 0 = sequentieller Code
