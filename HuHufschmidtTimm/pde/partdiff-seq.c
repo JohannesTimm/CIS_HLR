@@ -29,6 +29,11 @@
 
 #include "partdiff-seq.h"
 
+
+#ifndef MODE
+#define MODE 0  // 0 = sequentiell, 1 = mit Posix Threads
+#endif
+
 struct calculation_arguments
 {
 	uint64_t  N;              /* number of spaces between lines (lines=N+1)     */
@@ -140,7 +145,8 @@ static
 void
 initMatrices (struct calculation_arguments* arguments, struct options const* options)
 {
-	uint64_t g, i, j;                                /*  local variables for loops   */
+/*  local variables for loops   */
+  uint64_t g, i, j;
 
 	uint64_t const N = arguments->N;
 	double const h = arguments->h;
@@ -158,7 +164,7 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 		}
 	}
 
-	/* initialize borders, depending on function (function 2: nothing to do) */
+/* initialize borders, depending on function (function 2: nothing to do) */
 	if (options->inf_func == FUNC_F0)
 	{
 		for (g = 0; g < arguments->num_matrices; g++)
@@ -198,7 +204,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 	int term_iteration = options->term_iteration;
 
-	/* initialize m1 and m2 depending on algorithm */
+/* initialize m1 and m2 depending on algorithm */
 	if (options->method == METH_JACOBI)
 	{
 		m1 = 0;
@@ -377,23 +383,47 @@ main (int argc, char** argv)
 	struct options options;
 	struct calculation_arguments arguments;
 	struct calculation_results results;
+  int number = 0;
 
-	/* get parameters */
-	AskParams(&options, argc, argv);              /* ************************* */
+/* ************************* */
+/* get parameters */
+/* ************************* */
+	AskParams(&options, argc, argv);
+  // number = (int) options->number;
+  #if (MODE==0)
+    // 0 = sequentieller Code
+	  printf("Sequentieller Code\n"); // Nur zum Testen
+    // ...
 
-	initVariables(&arguments, &results, &options);           /* ******************************************* */
+  #elif (MODE == 1)
+    // 1 = Aufteilung mit Posix-Threads
+    printf("Aufteilung auf %d Posix Threads\n", number); // zum Testen
+    // ...
 
-	allocateMatrices(&arguments);        /*  get and initialize variables and matrices  */
-	initMatrices(&arguments, &options);            /* ******************************************* */
+  #else
+	  printf("Ungültiger Mode = %d\n", MODE); // Nur zum Testen
+  #endif
 
-	gettimeofday(&start_time, NULL);                   /*  start timer         */
-	calculate(&arguments, &results, &options);                                      /*  solve the equation  */
-	gettimeofday(&comp_time, NULL);                   /*  stop timer          */
+/* ******************************************* */
+/*  get and initialize variables and matrices  */
+/* ******************************************* */
+	initVariables(&arguments, &results, &options);
+
+	allocateMatrices(&arguments);
+	initMatrices(&arguments, &options);
+
+/*  start timer         */
+	gettimeofday(&start_time, NULL);
+/*  solve the equation  */
+	calculate(&arguments, &results, &options);
+/*  stop timer          */
+	gettimeofday(&comp_time, NULL);
 
 	displayStatistics(&arguments, &results, &options);
 	DisplayMatrix(&arguments, &results, &options);
 
-	freeMatrices(&arguments);                                       /*  free memory     */
+/*  free memory     */
+	freeMatrices(&arguments);
 
 	return 0;
 }
