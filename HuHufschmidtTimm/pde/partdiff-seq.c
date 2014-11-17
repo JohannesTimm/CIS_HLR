@@ -383,21 +383,19 @@ main (int argc, char** argv)
 	struct options options;
 	struct calculation_arguments arguments;
 	struct calculation_results results;
-  int number = 0;
 
 /* ************************* */
 /* get parameters */
 /* ************************* */
   AskParams(&options, argc, argv);
-  // number = (int) options->number;
   #if (MODE==0)
     // 0 = sequentieller Code
-	  printf("Sequentieller Code\n"); // Nur zum Testen
+	  printf("Sequentieller Code\n");
     // ...
 
   #elif (MODE == 1)
     // 1 = Aufteilung mit Posix-Threads
-    printf("Aufteilung auf %d Posix Threads\n", number); // zum Testen
+    printf("Aufteilung auf %d Posix Threads\n", (int) options.number);
     // ...
 
   #else
