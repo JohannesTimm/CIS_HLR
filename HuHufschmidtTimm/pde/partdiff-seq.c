@@ -387,6 +387,7 @@ main (int argc, char** argv)
 	struct options options;
 	struct calculation_arguments arguments;
 	struct calculation_results results;
+  int t; // thraed number
 
 /* ************************* */
 /* get parameters */
@@ -400,7 +401,9 @@ main (int argc, char** argv)
   #elif (MODE == 1)
     // 1 = Aufteilung mit Posix-Threads
     printf("Aufteilung auf %d Posix Threads\n", (int) options.number);
-    // ...
+   for (t = 0; t < options.number; t++) {
+     
+   }
 
   #else
 	  printf("Ungültiger Mode = %d\n", MODE); // Nur zum Testen
