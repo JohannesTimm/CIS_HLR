@@ -205,6 +205,7 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
     
     // Das geht nicht, warum??
     // calculate (p->arguments, p->results, p->options);
+    return NULL;
   }
 #endif
 /* ************************************************************************ */
