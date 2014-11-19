@@ -203,8 +203,8 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
     t_thread_data *p = (t_thread_data *)params;
     struct calculation_arguments *arguments = p->arguments;
     
-    
-    calculate (p->arguments, p->results, p->options);
+    // Das geht nicht, warum??
+    // calculate (p->arguments, p->results, p->options);
   }
 #endif
 /* ************************************************************************ */
@@ -427,13 +427,18 @@ main (int argc, char** argv)
     // 1 = Aufteilung mit Posix-Threads
     printf("Aufteilung auf %d Posix Threads\n", (int) options.number);
     if (options.number > NUM_THREADS) {
-      printf("Mehr als %d Threads geht nicht!\n", NUM_THREADS);
-      return 1;
+      printf("ERROR; Mehr als %d Threads geht nicht!\n", NUM_THREADS);
+      exit (-1);
     }
-    for (t = 0; t < options.number; t++) {
+    for (t = 0; t < (long) options.number; t++) {
       rc = pthread_create(&threads[t], NULL, calculate_wrapper, (void *)t);
+      if (rc){
+        printf("ERROR; return code from pthread_create() is %d\n", rc);
+        exit(-1);
+      }
+      
     }
-
+  pthread_exit(NULL);
   #else
 	  printf("Ungültiger Mode = %d\n", MODE); // Nur zum Testen
   #endif
