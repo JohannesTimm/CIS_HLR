@@ -201,7 +201,7 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
   void *calculate_wrapper(void * params) {
     long id;
     t_thread_data *p = (t_thread_data *)params;
-    struct calculation_arguments arguments = p->arguments;
+    struct calculation_arguments *arguments = p->arguments;
     
     
     calculate (p->arguments, p->results, p->options);
