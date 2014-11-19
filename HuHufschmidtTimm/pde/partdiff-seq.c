@@ -54,6 +54,15 @@ struct calculation_results
 	double    stat_precision; /* actual precision of all slaves in iteration    */
 };
 
+
+struct thread_data
+{
+   int  thread_id;
+   struct calculation_arguments *arguments;
+   struct calculation_results *results;
+   struct options *options;
+};
+
 /* ************************************************************************ */
 /* Global variables                                                         */
 /* ************************************************************************ */
@@ -186,7 +195,11 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 		}
 	}
 }
-
+# if (MODE==1)
+  void *calculate_wrapper(void * params) {
+    
+  }
+#endif
 /* ************************************************************************ */
 /* calculate: solves the equation                                           */
 /* ************************************************************************ */
@@ -387,8 +400,11 @@ main (int argc, char** argv)
 	struct options options;
 	struct calculation_arguments arguments;
 	struct calculation_results results;
+# if (MODE==1)
   int t, rc; // thread number, return value
+  struct thread_data *data;
   pthread_t threads[NUM_THREADS];
+#endif
 
 /* ************************* */
 /* get parameters */
@@ -407,7 +423,7 @@ main (int argc, char** argv)
       return 1;
     }
     for (t = 0; t < options.number; t++) {
-      rc = pthread_create(&threads[t], NULL, NULL, (void *)t);
+      rc = pthread_create(&threads[t], NULL, calculate_wrapper, (void *)t);
     }
 
   #else
