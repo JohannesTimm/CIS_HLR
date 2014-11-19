@@ -33,6 +33,10 @@
 #ifndef MODE
 #define MODE 0  // 0 = sequentiell, 1 = mit Posix Threads
 #endif
+#if MODE==1
+#include <pthread.h>
+#endif
+
 
 struct calculation_arguments
 {
