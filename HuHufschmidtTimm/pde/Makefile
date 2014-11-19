@@ -21,7 +21,7 @@ partdiff-seq.o: partdiff-seq.c
 	$(CC) -c $(CFLAGS)  -DMODE=0 -o partdiff-seq.o partdiff-seq.c
 
 partdiff-posix: $(OBJS) partdiff-posix.o
-	$(CC) $(LFLAGS) $(EXTRALD)-o $@ $(OBJS) partdiff-posix.o  $(LIBS)
+	$(CC) $(LFLAGS) $(EXTRALD) -o $@ $(OBJS) partdiff-posix.o  $(LIBS)
 
 partdiff-posix.o: partdiff-seq.c
 	$(CC) -c $(CFLAGS)  $(EXTRACC) -DMODE=1 -o partdiff-posix.o  partdiff-seq.c

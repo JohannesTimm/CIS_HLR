@@ -407,7 +407,7 @@ main (int argc, char** argv)
       return 1;
     }
     for (t = 0; t < options.number; t++) {
-      rc = pthread_create(&threads[t], NULL, PrintHello, (void *)t);
+      rc = pthread_create(&threads[t], NULL, NULL, (void *)t);
     }
 
   #else
