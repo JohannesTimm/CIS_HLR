@@ -55,13 +55,15 @@ struct calculation_results
 };
 
 
-typedef struct thread_data
+typedef struct t_thread_data
 {
-   int  thread_id;
+   long  thread_id;
    struct calculation_arguments *arguments;
    struct calculation_results *results;
    struct options *options;
-} t_thread_data;
+}t_thread_data;
+
+struct t_thread_data thread_data_array[NUM_THREADS] ;
 
 /* ************************************************************************ */
 /* Global variables                                                         */
@@ -197,7 +199,11 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 }
 # if (MODE==1)
   void *calculate_wrapper(void * params) {
-    t_thread_data *p = (t_thread_data *)params; 
+    long id;
+    t_thread_data *p = (t_thread_data *)params;
+    struct calculation_arguments arguments = p->arguments;
+    
+    
     calculate (p->arguments, p->results, p->options);
   }
 #endif
