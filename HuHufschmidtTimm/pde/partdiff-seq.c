@@ -36,7 +36,7 @@
 #if MODE==1
 #include <pthread.h>
 #endif
-
+#define NUM_THREADS 12
 
 struct calculation_arguments
 {
@@ -387,7 +387,8 @@ main (int argc, char** argv)
 	struct options options;
 	struct calculation_arguments arguments;
 	struct calculation_results results;
-  int t; // thraed number
+  int t, rc; // thread number, return value
+  pthread_t threads[NUM_THREADS];
 
 /* ************************* */
 /* get parameters */
@@ -401,9 +402,13 @@ main (int argc, char** argv)
   #elif (MODE == 1)
     // 1 = Aufteilung mit Posix-Threads
     printf("Aufteilung auf %d Posix Threads\n", (int) options.number);
-   for (t = 0; t < options.number; t++) {
-     
-   }
+    if (options.number > NUM_THREADS) {
+      printf("Mehr als %d Threads geht nicht!\n", NUM_THREADS);
+      return 1;
+    }
+    for (t = 0; t < options.number; t++) {
+      rc = pthread_create(&threads[t], NULL, PrintHello, (void *)t);
+    }
 
   #else
 	  printf("Ungültiger Mode = %d\n", MODE); // Nur zum Testen
