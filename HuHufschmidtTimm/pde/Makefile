@@ -6,8 +6,8 @@ CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb
 EXTRACC = -pthread
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
-# EXTRALD = -pthread
-PROGS = partdiff-seq partdiff-posix
+EXTRALD = -pthread
+PROGS = partdiff-posix partdiff-seq
 OBJS = askparams.o
 
 
