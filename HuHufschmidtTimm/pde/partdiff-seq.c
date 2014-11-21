@@ -240,14 +240,19 @@ threaded_calc(void* params)
 	int i_start= args->i_start;
 	int i_end=args ->i_end;
 	if (args->options->inf_func == FUNC_FPISIN)
+	{
 	double* fpisin_i;
+	double pih;
+	double fpisin;
 	fpisin_i = (double*)malloc(args->arguments->N * sizeof(double));
+	pih = PI * args->arguments->h;
+	fpisin = 0.25 * TWO_PI_SQUARE * args->arguments->h * args->arguments->h;
 	for (i = i_start; i < i_end; i++)			
 				{ 	
 					fpisin_i[i] = 0.0;
 					fpisin_i[i]= fpisin * sin(pih * (double)i);
 				}
-
+	}
 	/* over all rows */
 	or (i = i_start; i < i_end; i++)		
  	{
@@ -290,9 +295,12 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 {
 	int i, j;                                   /* local variables for loops  */
 	int m1, m2;                                 /* used as indices for old and new matrices       */
-	double star;                                /* four times center value minus 4 neigh.b values */
+	//double star;                                /* four times center value minus 4 neigh.b values */
 	double residuum;                            /* residuum of current iteration                  */
 	double maxresiduum;                         /* maximum residuum value of a slave in iteration */
+
+
+	int nthreads; //add here the number from the options
 
 	int const N = arguments->N;
 	double const h = arguments->h;
@@ -320,43 +328,101 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		fpisin = 0.25 * TWO_PI_SQUARE * h * h;
 	}
 
+	pthread_t threads[nthreads]; //build our threads
+//**
+//Aufteilungsalgo here!!!!!
+/+++
+//+++
+//+++
+//+++
+//+++
+//+++
+
+
+
+
+
+*//
+
 	while (term_iteration > 0)
 	{
-		double** Matrix_Out = arguments->Matrix[m1];
-		double** Matrix_In  = arguments->Matrix[m2];
-
 		maxresiduum = 0;
-
-		/* over all rows */
-		for (i = 1; i < N; i++)
-		{
-			double fpisin_i = 0.0;
-
-			if (options->inf_func == FUNC_FPISIN)
+		
+		//creating threads here
+		for(i = 0; i < nthreads; ++i)
+        {	
+			int rc; //test if sucessful
+            thread_args* args = malloc(sizeof(thread_args));
+            args->arguments = arguments;
+            args->options = options;
+            args->slices = slices;
+            args->thread_id = i;
+            args->m1 = m1;
+            args->m2 = m2;
+			args->i_start=istart[i];
+			args->i_end=iend[i];
+            args->residuum = residuum;
+            args->maxresiduum = maxresiduum;
+            args->term_iteration = term_iteration;
+            rc=pthread_create(&threads[i], NULL, threaded_calc, (void *)args);
+			if (rc)
 			{
-				fpisin_i = fpisin * sin(pih * (double)i);
+	         	printf("ERROR; return code from pthread_create() is %d\n", rc);
+	        	exit(-1);
 			}
-
-			/* over all columns */
-			for (j = 1; j < N; j++)
-			{
-				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
-
-				if (options->inf_func == FUNC_FPISIN)
+		 }
+		  //joining them
+		for(i = 0; i < nthreads; ++i)
+        {
+			int rc;			            
+			rc=pthread_join(threads[i], NULL);
+	
+    		  if (rc) 
 				{
-					star += fpisin_i * sin(pih * (double)j);
-				}
+    		     printf("ERROR; return code from pthread_join() is %d\n", rc);
+         		 exit(-1);
+         		}
+        }
+					
+    
+        
 
-				if (options->termination == TERM_PREC || term_iteration == 1)
-				{
-					residuum = Matrix_In[i][j] - star;
-					residuum = (residuum < 0) ? -residuum : residuum;
-					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
-				}
 
-				Matrix_Out[i][j] = star;
-			}
-		}
+//		double** Matrix_Out = arguments->Matrix[m1];
+//		double** Matrix_In  = arguments->Matrix[m2];
+//
+//		maxresiduum = 0;
+//
+//		/* over all rows */
+//		for (i = 1; i < N; i++)
+//		{
+//			double fpisin_i = 0.0;
+//
+//			if (options->inf_func == FUNC_FPISIN)
+//			{
+//				fpisin_i = fpisin * sin(pih * (double)i);
+//			}
+//
+//			/* over all columns */
+//			for (j = 1; j < N; j++)
+//			{
+//				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+//
+//				if (options->inf_func == FUNC_FPISIN)
+//				{
+//					star += fpisin_i * sin(pih * (double)j);
+//				}
+//
+//				if (options->termination == TERM_PREC || term_iteration == 1)
+//				{
+//					residuum = Matrix_In[i][j] - star;
+//					residuum = (residuum < 0) ? -residuum : residuum;
+//					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+//				}
+//
+//				Matrix_Out[i][j] = star;
+//			}
+//		}
 
 		results->stat_iteration++;
 		results->stat_precision = maxresiduum;
