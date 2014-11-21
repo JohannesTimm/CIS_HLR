@@ -208,6 +208,79 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
     return NULL;
   }
 #endif
+typedef struct  //give parameters for every thread
+{
+    struct calculation_arguments const* arguments;
+    struct options const* options;
+    int* slices;
+    int thread_id;
+    int m1; //the matrixes
+    int m2;
+	int i_start;
+	int i_end;
+    double* residuum;
+    double* maxresiduum;
+    int term_iteration;
+} thread_args;
+static pthread_mutex_t mutex_residuum= PTHREAD_MUTEX_INITIALIZER;
+
+/*/* ************************************************************************ */
+/*threaded_calc :
+/* ************************************************************************ */
+static
+void*
+threaded_calc(void* params)
+{
+	
+	 int i, j;
+	double star;
+	thread_args* args= (thread_args*) params;
+	double** Matrix_Out = args->arguments->Matrix[args->m1];
+	double** Matrix_In  = args->arguments->Matrix[args->m2];
+	int i_start= args->i_start;
+	int i_end=args ->i_end;
+	if (args->options->inf_func == FUNC_FPISIN)
+	double* fpisin_i;
+	fpisin_i = (double*)malloc(args->arguments->N * sizeof(double));
+	for (i = i_start; i < i_end; i++)			
+				{ 	
+					fpisin_i[i] = 0.0;
+					fpisin_i[i]= fpisin * sin(pih * (double)i);
+				}
+
+	/* over all rows */
+	or (i = i_start; i < i_end; i++)		
+ 	{
+		/* over all columns */
+        for (j = 1; j < args->arguments->N; j++)
+        {
+		star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+
+					if (args->options->inf_func == FUNC_FPISIN)
+					{
+						star += fpisin_i[i] * sin(pih * (double)j);
+					}
+		if (args->options->termination == TERM_PREC || args->term_iteration == 1)
+            {
+                pthread_mutex_lock(&mutex_residuum); *args->residuum = Matrix_In[i][j] - star;
+                *args->residuum = (*args->residuum < 0) ? -*args->residuum : *args->residuum;
+                *args->maxresiduum = (*args->residuum < *args->maxresiduum) ? *args->maxresiduum : *args->residuum;
+                pthread_mutex_unlock(&mutex_residuum);
+            }
+		Matrix_Out[i][j] = star;
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
 /* ************************************************************************ */
 /* calculate: solves the equation                                           */
 /* ************************************************************************ */
