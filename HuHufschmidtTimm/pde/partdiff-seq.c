@@ -197,17 +197,17 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 		}
 	}
 }
-# if (MODE==1)
-  void *calculate_wrapper(void * params) {
-    long id;
-    t_thread_data *p = (t_thread_data *)params;
-    struct calculation_arguments *arguments = p->arguments;
-    
-    // Das geht nicht, warum??
-    // calculate (p->arguments, p->results, p->options);
-    return NULL;
-  }
-#endif
+//# if (MODE==1)
+//  void *calculate_wrapper(void * params) {
+//    long id;
+//    t_thread_data *p = (t_thread_data *)params;
+//    struct calculation_arguments *arguments = p->arguments;
+//    
+//    // Das geht nicht, warum??
+//    // calculate (p->arguments, p->results, p->options);
+//    return NULL;
+//  }
+//#endif
 typedef struct  //give parameters for every thread
 {
     struct calculation_arguments const* arguments;
@@ -227,64 +227,56 @@ static pthread_mutex_t mutex_residuum= PTHREAD_MUTEX_INITIALIZER;
 /* ************************************************************************ */
 /*threaded_calc : */
 /* ************************************************************************ */
-static
-void*
-threaded_calc(void* params)
+static void* threaded_calc(void* params)
 {
 	
-	 int i, j;
+	int i, j;
 	double star;
 	thread_args* args= (thread_args*) params;
 	double** Matrix_Out = args->arguments->Matrix[args->m1];
 	double** Matrix_In  = args->arguments->Matrix[args->m2];
 	int i_start= args->i_start;
 	int i_end=args ->i_end;
+	
+	double* fpisin_i;
+	double pih=0.0;
+	double fpisin=0.0;
+	
+	fpisin_i = (double*)malloc(args->arguments->N * sizeof(double));
 	if (args->options->inf_func == FUNC_FPISIN)
 	{
-	double* fpisin_i;
-	double pih;
-	double fpisin;
-	fpisin_i = (double*)malloc(args->arguments->N * sizeof(double));
-	pih = PI * args->arguments->h;
-	fpisin = 0.25 * TWO_PI_SQUARE * args->arguments->h * args->arguments->h;
-	for (i = i_start; i < i_end; i++)			
+	 pih = PI * args->arguments->h;
+	 fpisin = 0.25 * TWO_PI_SQUARE * args->arguments->h * args->arguments->h;
+	 for (i = i_start; i < i_end; i++)			
 				{ 	
 					fpisin_i[i] = 0.0;
-					fpisin_i[i]= fpisin * sin(pih * (double)i);
+					fpisin_i[i] = fpisin * sin(pih * (double)i);
 				}
 	}
 	/* over all rows */
 	for (i = i_start; i < i_end; i++)		
  	{
 		/* over all columns */
-        for (j = 1; j < args->arguments->N; j++)
-        {
+           for (j = 1; j < args->arguments->N; j++)
+           {
 		star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
 
-					if (args->options->inf_func == FUNC_FPISIN)
+                if (args->options->inf_func == FUNC_FPISIN)
 					{
 						star += fpisin_i[i] * sin(pih * (double)j);
 					}
 		if (args->options->termination == TERM_PREC || args->term_iteration == 1)
-            {
-                pthread_mutex_lock(&mutex_residuum); *args->residuum = Matrix_In[i][j] - star;
-                *args->residuum = (*args->residuum < 0) ? -*args->residuum : *args->residuum;
-                *args->maxresiduum = (*args->residuum < *args->maxresiduum) ? *args->maxresiduum : *args->residuum;
-                pthread_mutex_unlock(&mutex_residuum);
-            }
+                {
+                 pthread_mutex_lock(&mutex_residuum); *args->residuum = Matrix_In[i][j] - star;
+                 *args->residuum = (*args->residuum < 0) ? -*args->residuum : *args->residuum;
+                 *args->maxresiduum = (*args->residuum < *args->maxresiduum) ? *args->maxresiduum : *args->residuum;
+                 pthread_mutex_unlock(&mutex_residuum);
+                }
 		Matrix_Out[i][j] = star;
-		}
+	   }
 	}
+	
 }
-
-
-
-
-
-
-
-
-
 
 /* ************************************************************************ */
 /* calculate: solves the equation                                           */
@@ -342,7 +334,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 	int istart[nthreads];
 	int iend[nthreads];
 	
-	for (i=0; i<nthread; i++)
+	for (i=0; i<nthreads; i++)
 	{
 		if (i < rest)
 		{
@@ -363,12 +355,12 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 	while (term_iteration > 0)
 	{
-		maxresiduum = 0;
+		*maxresiduum = 0;
 		
 		//creating threads here
-		for(i = 0; i < nthreads; ++i)
+	for(i = 0; i < nthreads; ++i)
         {	
-			int rc; //test if sucessful
+            int rc; //test if sucessful
             thread_args* args = malloc(sizeof(thread_args));
             args->arguments = arguments;
             args->options = options;
@@ -380,13 +372,14 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
             args->residuum = residuum;
             args->maxresiduum = maxresiduum;
             args->term_iteration = term_iteration;
+            
             rc=pthread_create(&threads[i], NULL, threaded_calc, (void *)args);
-			if (rc)
+            if (rc)
 			{
 	         	printf("ERROR; return code from pthread_create() is %d\n", rc);
 	        	exit(-1);
 			}
-		 }
+	}
 		  //joining them
 		for(i = 0; i < nthreads; ++i)
         {
@@ -563,12 +556,12 @@ main (int argc, char** argv)
 	struct options options;
 	struct calculation_arguments arguments;
 	struct calculation_results results;
-# if (MODE==1)
-  long t;  // thread number
-  int rc;  // return value
-  struct thread_data *data;
-  pthread_t threads[NUM_THREADS];
-#endif
+//# if (MODE==1)
+//  long t;  // thread number
+//  int rc;  // return value
+//  struct thread_data *data;
+//  pthread_t threads[NUM_THREADS];
+//#endif
 
 /* ************************* */
 /* get parameters */
@@ -586,15 +579,14 @@ main (int argc, char** argv)
       printf("ERROR; Mehr als %d Threads geht nicht!\n", NUM_THREADS);
       exit (-1);
     }
-    for (t = 0; t < (long) options.number; t++) {
-      rc = pthread_create(&threads[t], NULL, calculate_wrapper, (void *)t);
-      if (rc){
-        printf("ERROR; return code from pthread_create() is %d\n", rc);
-        exit(-1);
-      }
-      
-    }
-  pthread_exit(NULL);
+    //for (t = 0; t < (long) options.number; t++) {
+    //  rc = pthread_create(&threads[t], NULL, calculate_wrapper, (void *)t);
+    //  if (rc){
+    //    printf("ERROR; return code from pthread_create() is %d\n", rc);
+    //    exit(-1);
+    //  }  
+    //}
+  
   #else
 	  printf("Ungültiger Mode = %d\n", MODE); // Nur zum Testen
   #endif
@@ -610,6 +602,7 @@ main (int argc, char** argv)
 /*  start timer         */
 	gettimeofday(&start_time, NULL);
 /*  solve the equation  */
+/*/threads created inside of calculate!*/
 	calculate(&arguments, &results, &options);
 /*  stop timer          */
 	gettimeofday(&comp_time, NULL);
@@ -618,6 +611,7 @@ main (int argc, char** argv)
 	DisplayMatrix(&arguments, &results, &options);
 
 /*  free memory     */
+	pthread_exit(NULL);
 	freeMatrices(&arguments);
 
 	return 0;
