@@ -333,27 +333,23 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 //Aufteilungsalgo here!!!!!
 	int width;
 	int rest;
-	int my_thread;
-	int num_threads;
-	int i;
-	num_threads = options -> number;
-	width = (int)((N-1)/num_threads);
-	rest = (N-1) % num_threads;
+
+	width = (int)((N-1)/nthreads);
+	rest = (N-1) % nthreads;
 	
-	int istart[num_threads];
-	int iend[num_threads];
+	int istart[nthreads];
+	int iend[nthreads];
 	
-	for (i=0; i<num_thread; i++)
+	for (i=0; i<nthread; i++)
 	{
-		my_thread = i;
-		if (my_thread < rest)
+		if (i < rest)
 		{
-			istart[i] = (width + 1) * my_thread + 1;
+			istart[i] = (width + 1) * i + 1;
 			iend[i] = istart[i] + width + 1;
 		}
 		else
 		{
-			istart[i] = width * my_thread + rest + 1;
+			istart[i] = width * i + rest + 1;
 			iend[i] = istart[i] + width;
 		}
 	}
