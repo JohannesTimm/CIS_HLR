@@ -7,7 +7,8 @@ EXTRACC = -pthread
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
 EXTRALD = -pthread
-PROGS = partdiff-posix partdiff-seq
+#PROGS = partdiff-posix partdiff-seq
+PROGS = partdiff-posix
 OBJS = askparams.o
 
 

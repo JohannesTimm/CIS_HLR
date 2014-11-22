@@ -212,20 +212,20 @@ typedef struct  //give parameters for every thread
 {
     struct calculation_arguments const* arguments;
     struct options const* options;
-    int* slices;
+    
     int thread_id;
     int m1; //the matrixes
     int m2;
-	int i_start;
-	int i_end;
+    int i_start;
+    int i_end;
     double* residuum;
     double* maxresiduum;
     int term_iteration;
 } thread_args;
-static pthread_mutex_t mutex_residuum= PTHREAD_MUTEX_INITIALIZER;
 
-/*/* ************************************************************************ */
-/*threaded_calc :
+static pthread_mutex_t mutex_residuum= PTHREAD_MUTEX_INITIALIZER;
+/* ************************************************************************ */
+/*threaded_calc : */
 /* ************************************************************************ */
 static
 void*
@@ -254,7 +254,7 @@ threaded_calc(void* params)
 				}
 	}
 	/* over all rows */
-	or (i = i_start; i < i_end; i++)		
+	for (i = i_start; i < i_end; i++)		
  	{
 		/* over all columns */
         for (j = 1; j < args->arguments->N; j++)
@@ -296,11 +296,13 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 	int i, j;                                   /* local variables for loops  */
 	int m1, m2;                                 /* used as indices for old and new matrices       */
 	//double star;                                /* four times center value minus 4 neigh.b values */
-	double residuum;                            /* residuum of current iteration                  */
-	double maxresiduum;                         /* maximum residuum value of a slave in iteration */
+        double res = 0;
+        double maxres = 0;
+	double* residuum = &res;                            /* residuum of current iteration                  */
+	double* maxresiduum = &maxres;                         /* maximum residuum value of a slave in iteration */
 
 
-	int nthreads; //add here the number from the options
+	int nthreads= options->number; //add here the number from the options
 
 	int const N = arguments->N;
 	double const h = arguments->h;
@@ -370,12 +372,11 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
             thread_args* args = malloc(sizeof(thread_args));
             args->arguments = arguments;
             args->options = options;
-            args->slices = slices;
             args->thread_id = i;
             args->m1 = m1;
             args->m2 = m2;
-			args->i_start=istart[i];
-			args->i_end=iend[i];
+            args->i_start=istart[i];
+            args->i_end=iend[i];
             args->residuum = residuum;
             args->maxresiduum = maxresiduum;
             args->term_iteration = term_iteration;
@@ -440,7 +441,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 //		}
 
 		results->stat_iteration++;
-		results->stat_precision = maxresiduum;
+		results->stat_precision = *maxresiduum;
 
 		/* exchange m1 and m2 */
 		i = m1;
@@ -450,7 +451,7 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		/* check for stopping calculation, depending on termination method */
 		if (options->termination == TERM_PREC)
 		{
-			if (maxresiduum < options->term_precision)
+			if (*maxresiduum < options->term_precision)
 			{
 				term_iteration = 0;
 			}
