@@ -331,18 +331,37 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 	pthread_t threads[nthreads]; //build our threads
 //**
 //Aufteilungsalgo here!!!!!
-/+++
+	int width;
+	int rest;
+	int my_thread;
+	int num_threads;
+	int i;
+	num_threads = options -> number;
+	width = (int)((N-1)/num_threads);
+	rest = (N-1) % num_threads;
+	
+	int istart[num_threads];
+	int iend[num_threads];
+	
+	for (i=0; i<num_thread; i++)
+	{
+		my_thread = i;
+		if (my_thread < rest)
+		{
+			istart[i] = (width + 1) * my_thread + 1;
+			iend[i] = istart[i] + width + 1;
+		}
+		else
+		{
+			istart[i] = width * my_thread + rest + 1;
+			iend[i] = istart[i] + width;
+		}
+	}
 //+++
 //+++
 //+++
 //+++
 //+++
-
-
-
-
-
-*//
 
 	while (term_iteration > 0)
 	{
