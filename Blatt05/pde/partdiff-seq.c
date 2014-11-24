@@ -27,7 +27,7 @@
 #include <malloc.h>
 #include <sys/time.h>
 
-#include "partdiff-posix.h"
+#include "partdiff-seq.h"
 
 
 #ifndef MODE
