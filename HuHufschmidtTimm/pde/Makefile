@@ -24,8 +24,8 @@ partdiff-seq.o: partdiff-seq.c
 partdiff-posix: $(OBJS) partdiff-posix.o
 	$(CC) $(LFLAGS) $(EXTRALD) -o $@ $(OBJS) partdiff-posix.o  $(LIBS)
 
-partdiff-posix.o: partdiff-seq.c
-	$(CC) -c $(CFLAGS)  $(EXTRACC) -DMODE=1 -o partdiff-posix.o  partdiff-seq.c
+partdiff-posix.o: partdiff-posix.c
+	$(CC) -c $(CFLAGS)  $(EXTRACC) -DMODE=1 -o partdiff-posix.o  partdiff-posix.c
 
 askparams.o: askparams.c Makefile
 	$(CC) -c $(CFLAGS) askparams.c
