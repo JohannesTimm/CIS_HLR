@@ -10,9 +10,10 @@
 int main (int argc, char **argv)
 {	
 	char str[42];
-	int size, rank, rc, dest, source, count, tag;  
+	int size, rank, rc, dest, source, tag;  
 	int i;
 	long every_time,min_time;
+	int random[100];
 	MPI_Status Stat;
 	/* mpi starts*/
 	rc = MPI_Init (&argc, &argv);	
@@ -23,6 +24,10 @@ int main (int argc, char **argv)
     }
 	MPI_Comm_rank (MPI_COMM_WORLD, &rank);	
 	MPI_Comm_size (MPI_COMM_WORLD, &size);
+	for (i= 0 ; i < 100 ; i++)
+	{
+		random[i] = rand();
+	}
 	/* Rang 0*/
 	if (rank == 0)
 	{
