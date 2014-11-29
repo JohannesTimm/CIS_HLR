@@ -36,6 +36,7 @@ int main (int argc, char **argv)
 	{
 		random[i] = rand();
 	}
+	printf("%d",random[5]);
 	#endif
 	/* Rang 0*/
 	if (rank == 0)
