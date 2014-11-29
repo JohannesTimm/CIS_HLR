@@ -11,4 +11,4 @@ timempi2: timempi2.c
 timempi2-debug:timempi2.c
 	$(CC) $(CFLAGS) -DMODE=1 -o timempi2-debug timempi2.c
 clean:
-	rm $(PROGS)
+	rm $(PROGS) timempi2-debug
