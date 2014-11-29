@@ -16,7 +16,7 @@ int main (int argc, char **argv)
 	int size, rank, rc, dest, source, tag;  
 	int i;
 	long every_time,min_time;
-	int random[100];
+	
 	MPI_Status Stat;
 	/* mpi starts*/
 	rc = MPI_Init (&argc, &argv);	
@@ -29,6 +29,7 @@ int main (int argc, char **argv)
 	MPI_Comm_size (MPI_COMM_WORLD, &size);
 	#if MODE==1
 	//Random Numbers for debugger
+	int random[100];
 	time_t t;
 	srand((unsigned) time(&t));
 	for (i= 0 ; i < 100 ; i++)
