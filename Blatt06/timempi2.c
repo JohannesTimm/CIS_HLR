@@ -24,10 +24,15 @@ int main (int argc, char **argv)
     }
 	MPI_Comm_rank (MPI_COMM_WORLD, &rank);	
 	MPI_Comm_size (MPI_COMM_WORLD, &size);
+	
+	//Random Numbers for debugger
+	time_t t;
+	srand((unsigned) time(&t));
 	for (i= 0 ; i < 100 ; i++)
 	{
 		random[i] = rand();
 	}
+	
 	/* Rang 0*/
 	if (rank == 0)
 	{
