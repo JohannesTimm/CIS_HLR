@@ -49,23 +49,25 @@ circle(int* buf)
   //todo
 	//int tag = rank + 10;
 	//MPI_Status Stat;
-	//MPI_Request Request;
+	//MPI_Request Request[2];
 	//if (rank == 0)
 	//{
-		//MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request);
-		//MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request);
+		//MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
+		//MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
 	//}
 	//else if (rank == size -1)
 	//{
-		//MPI_Isend(buf, N_per_rank[0], MPI_INT, 0, tag, MPI_COMM_WORLD, &Request);
-		//MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request);
+		//MPI_Isend(buf, N_per_rank[0], MPI_INT, 0, tag, MPI_COMM_WORLD, &Request[0]);
+		//MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
 	//}
 	////else 
 	////{
-		////MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request);
-		////MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request);
+		////MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
+		////MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
 	////}
-	////MPI_Wait(&Request, &Stat);
+	////MPI_Wait(&Request[0], &Stat);
+	////MPI_Wait(&Request[1], &Stat);
+	
 	return buf;
 }
 
