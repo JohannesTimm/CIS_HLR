@@ -159,7 +159,7 @@ main (int argc, char** argv)
 				{
 					MPI_Isend(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD, &Request2[i]);
 				}
-				MPI_Waitall(size,&Request2,&Stat2);
+				MPI_Waitall(size,Request2,Stat2);
 			}	
 		}
 		else
@@ -171,14 +171,14 @@ main (int argc, char** argv)
 		//	//}
 		//}
 		{
-			MPI_Status *Stat2;
-			MPI_Request *Request2;
+			MPI_Status Stat2;
+			MPI_Request Request2;
 			MPI_Iprobe(size-1,tag1,MPI_COMM_WORLD,&flag,&Stat2);
 			if (flag)
 				{
 			  	//MPI_Get_count(&Stat, MPI_INT, &msglen);
 				
-				MPI_Irecv(&do_cycle, 1, MPI_INT, size-1, tag1, MPI_COMM_WORLD, &Request2[1]);
+				MPI_Irecv(&do_cycle, 1, MPI_INT, size-1, tag1, MPI_COMM_WORLD, &Request2);
 				MPI_Wait(&Request2,&Stat2);
 				}
 		}
