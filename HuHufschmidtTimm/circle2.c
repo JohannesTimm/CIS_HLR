@@ -4,41 +4,41 @@
 #include <mpi.h>
 
 int*
-init (int N, int rank, int size, int rest, int* N_per_rank)
+init (int N, int rank, int* N_per_rank)
 {
 	//todo
 	int* buf;
-	if ((N % size)==0)
-	{			
+	//if ((N % size)==0)
+	//{			
 		buf = malloc(sizeof(int) * N_per_rank[rank]);
-		srand(time(NULL));
+		srand(time(NULL)+rank);
 
 		for (int i = 0; i < N_per_rank[rank]; i++)
 		{
 			buf[i] = rand() % 25; //do not modify %25
 		}
-	}
-	else 
-	{	
-		if (rank < rest)
-		{
-			buf = malloc(sizeof(int) * N_per_rank[rank]);
-			srand(time(NULL));
-			for (int i = 0; i < N_per_rank[rank]; i++)
-			{
-				buf[i] = rand() % 25; //do not modify %25
-			}
-		}
-		else
-		{	
-			buf = malloc(sizeof(int) * N_per_rank[rank]);
-			srand(time(NULL));
-			for (int i = 0; i < N_per_rank[rank] ; i++)
-			{
-				buf[i] = rand() % 25; //do not modify %25
-			}
-		}
-	}
+	//}
+	//else 
+	//{	
+		//if (rank < rest)
+		//{
+			//buf = malloc(sizeof(int) * N_per_rank[rank]);
+			//srand(time(NULL));
+			//for (int i = 0; i < N_per_rank[rank]; i++)
+			//{
+				//buf[i] = rand() % 25; //do not modify %25
+			//}
+		//}
+		//else
+		//{	
+			//buf = malloc(sizeof(int) * N_per_rank[rank]);
+			//srand(time(NULL));
+			//for (int i = 0; i < N_per_rank[rank] ; i++)
+			//{
+				//buf[i] = rand() % 25; //do not modify %25
+			//}
+		//}
+	//}
   return buf;
 }
 
@@ -122,7 +122,7 @@ main (int argc, char** argv)
 			N_per_rank[rank] = (int)(N / size) ;
 		}
 	}
-	buf = init(N,rank,size,rest,N_per_rank);
+	buf = init(N,rank,N_per_rank);
 	printf("\nBEFORE\n");
 
   for (int i = 0; i < N_per_rank[rank]; i++)
