@@ -56,7 +56,10 @@ main (int argc, char** argv)
 	int do_cycle= 1;
 	int a;	//store the first element of process 0.
 	int tag=999, tag1=99; //distinguish lines in Vampir from different tag. 
+	int flag;
+	//int msglen;
 	MPI_Status Stat;
+	
 	//if (argc < 2)
 	//{
 		//printf("Arguments error\n");
@@ -75,10 +78,23 @@ main (int argc, char** argv)
     	}
 	MPI_Comm_rank (MPI_COMM_WORLD, &rank);	
 	MPI_Comm_size (MPI_COMM_WORLD, &size);
+	
+	//if (rank==size-1)
+  	//{
+  	//	
+	//	MPI_Request *Request2 = malloc(sizeof(MPI_Request)*size);
+	//	MPI_Status *Stat2 = malloc(sizeof(MPI_Status)*size);
+  	//}
+  	//else
+  	//{
+  	//	MPI_Status *Stat2;
+	//	MPI_Request *Request2;
+  	//}
 
   	//todo myrank
   	/*array division scheme*/
 	N_per_rank = malloc(sizeof(int) * size);
+	
 	if ((N % size) == 0)
 	{
 		for (i=0 ; i<size; i++)
@@ -123,25 +139,50 @@ main (int argc, char** argv)
 		printf ("rank %d: %d\n", rank, buf[i]);
 	}
   	/*cycling, when condition is satified, send message from the last process to others processes*/ 
+  	
 	while(do_cycle)
 	{
 		circle(buf,rank,size,N_per_rank);
-		MPI_Barrier(MPI_COMM_WORLD);
+		//MPI_Barrier(MPI_COMM_WORLD);
 		if(rank==size-1)
 		{
 			if (buf[0]==a)
 			{			
 				do_cycle = 0;	
-			}
-			for (i=0; i<size-1; i++)
-			{
-				MPI_Send(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD);
-			}
+			//}
+				MPI_Request *Request2 = malloc(sizeof(MPI_Request *)*size);
+				MPI_Status *Stat2 = malloc(sizeof(MPI_Status *)*size);
+				for (i=0; i<size-1; i++)
+			//{
+			//	MPI_Send(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD);
+			//}
+				{
+					MPI_Isend(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD, &Request2[i]);
+				}
+				MPI_Waitall(size,&Request2,&Stat2);
+			}	
 		}
 		else
+		//{
+		//	//MPI_Iprobe(size-1,tag1,MPI_COMM_WORLD,&flag,&Stat);
+		//	//if (flag) {
+		//	  	//MPI_Get_count(&Stat, MPI_INT, &msglen);
+		//		MPI_Recv(&do_cycle, 1, MPI_INT, size-1, tag1, MPI_COMM_WORLD, &Stat);
+		//	//}
+		//}
 		{
-			MPI_Recv(&do_cycle, 1, MPI_INT, size-1, tag1, MPI_COMM_WORLD, &Stat);
-		}		
+			MPI_Status *Stat2;
+			MPI_Request *Request2;
+			MPI_Iprobe(size-1,tag1,MPI_COMM_WORLD,&flag,&Stat2);
+			if (flag)
+				{
+			  	//MPI_Get_count(&Stat, MPI_INT, &msglen);
+				
+				MPI_Irecv(&do_cycle, 1, MPI_INT, size-1, tag1, MPI_COMM_WORLD, &Request2[1]);
+				MPI_Wait(&Request2,&Stat2);
+				}
+		}
+				
 		MPI_Barrier(MPI_COMM_WORLD);
 	}
 
