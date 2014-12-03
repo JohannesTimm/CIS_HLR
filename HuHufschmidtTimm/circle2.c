@@ -72,11 +72,12 @@ main (int argc, char** argv)
 	{
 		printf ("Error starting MPI program. Terminating.\n");    	
 		MPI_Abort(MPI_COMM_WORLD, rc);
-    }
+    	}
 	MPI_Comm_rank (MPI_COMM_WORLD, &rank);	
 	MPI_Comm_size (MPI_COMM_WORLD, &size);
 
-  //todo myrank
+  	//todo myrank
+  	/*array division scheme*/
 	N_per_rank = malloc(sizeof(int) * size);
 	if ((N % size) == 0)
 	{
@@ -105,7 +106,7 @@ main (int argc, char** argv)
 	}
 	buf = init(N,rank,size,N_per_rank);
 	
-	/*for comparation*/
+	/*store the value from first element of process 0 to a*/
 	if(rank == 0)
 	{
 		MPI_Send(&buf[0], 1, MPI_INT, size-1, tag, MPI_COMM_WORLD);
@@ -121,7 +122,7 @@ main (int argc, char** argv)
 	{
 		printf ("rank %d: %d\n", rank, buf[i]);
 	}
-  
+  	/*cycling, when condition is satified, send message from the last process to others processes*/ 
 	while(do_cycle)
 	{
 		circle(buf,rank,size,N_per_rank);
