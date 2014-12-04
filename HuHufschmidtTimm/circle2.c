@@ -27,19 +27,23 @@ circle (int* buf, int rank, int size, int* N_per_rank)
 	MPI_Request Request[2];
 	if (rank == 0)
 	{
+		printf("Rank 0 Sending");
 		MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
 		MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 	else if (rank == size -1)
 	{
+		printf("last Rank Sending");
 		MPI_Isend(buf, N_per_rank[size-1], MPI_INT, 0, tag, MPI_COMM_WORLD, &Request[0]);
 		MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 	else 
 	{	
+		printf("%d, Sending",rank);
 		MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
 		MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
+	printf("%d,Waiting",rank);
 	MPI_Waitall(2,Request,Stat);
 	
 	return buf;
@@ -139,9 +143,10 @@ main (int argc, char** argv)
 		printf ("rank %d: %d\n", rank, buf[i]);
 	}
   	/*cycling, when condition is satified, send message from the last process to others processes*/ 
-  	
+  	printf("%d,Cycle here",rank);
 	while(do_cycle)
 	{
+		printf("%d, calling circle",rank);
 		circle(buf,rank,size,N_per_rank);
 		//MPI_Barrier(MPI_COMM_WORLD);
 		if(rank==size-1)
@@ -150,6 +155,7 @@ main (int argc, char** argv)
 			{			
 				do_cycle = 0;	
 			//}
+				printf("Sending Abort");
 				MPI_Request *Request2 = malloc(sizeof(MPI_Request *)*size);
 				MPI_Status *Stat2 = malloc(sizeof(MPI_Status *)*size);
 				for (i=0; i<size-1; i++)
@@ -158,11 +164,15 @@ main (int argc, char** argv)
 			//}
 				{
 					MPI_Isend(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD, &Request2[i]);
+					MPI_Wait(&Request2[i],&Stat2[i]);
 				}
-				MPI_Waitall(size,Request2,Stat2);
+				//MPI_Waitall(size,Request2,Stat2);
 			}	
 		}
-		else
+		MPI_Barrier(MPI_COMM_WORLD);
+		
+		if(rank!=size-1)
+		//else
 		//{
 		//	//MPI_Iprobe(size-1,tag1,MPI_COMM_WORLD,&flag,&Stat);
 		//	//if (flag) {
@@ -173,17 +183,18 @@ main (int argc, char** argv)
 		{
 			MPI_Status Stat2;
 			MPI_Request Request2;
+			printf("%d,Test Abrot Msg",rank);
 			MPI_Iprobe(size-1,tag1,MPI_COMM_WORLD,&flag,&Stat2);
 			if (flag)
 				{
 			  	//MPI_Get_count(&Stat, MPI_INT, &msglen);
-				
+				printf("%d, Recive MSG",rank);
 				MPI_Irecv(&do_cycle, 1, MPI_INT, size-1, tag1, MPI_COMM_WORLD, &Request2);
 				MPI_Wait(&Request2,&Stat2);
 				}
 		}
 				
-		MPI_Barrier(MPI_COMM_WORLD);
+//		MPI_Barrier(MPI_COMM_WORLD);
 	}
 
 	printf("\nAFTER\n");
