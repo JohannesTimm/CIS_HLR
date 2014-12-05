@@ -100,7 +100,11 @@ main (int argc, char** argv)
   	//todo myrank
   	/*array division scheme*/
 	N_per_rank = malloc(sizeof(int) * size);
-	
+	if (N < size) 
+	{
+	printf("Array length shorter than number of processes. This is forbidden. Try using the program with a greater array length \n");
+	return -2;
+	}
 	if ((N % size) == 0)
 	{
 		for (i=0 ; i<size; i++)
