@@ -52,8 +52,8 @@ circle (int* buf, int rank, int size, int* N_per_rank)
 int
 main (int argc, char** argv)
 {
-	//char arg[256];
-	int N=9;	 //put the dimension of array.	
+	char arg[256];
+	int N;	 
 	int size, rank, rc, i, rest;
 	int* buf;
 	int* N_per_rank;	//elements number of each process.
@@ -61,17 +61,19 @@ main (int argc, char** argv)
 	int a;	//store the first element of process 0.
 	int tag=999, tag1=99; //distinguish lines in Vampir from different tag. 
 	int flag;
+	int displacement=0; //for Outputs after circle. To calculate after circle how many displacements does a array take between processes.
+	
 	//int msglen;
 	MPI_Status Stat;
 	
-	//if (argc < 2)
-	//{
-		//printf("Arguments error\n");
-		//return EXIT_FAILURE;
-	//}
-	//sscanf(argv[1], "%s", arg);
+	if (argc < 2)
+	{
+		printf("Arguments error\n");
+		return EXIT_FAILURE;
+	}
+	sscanf(argv[1], "%s", arg);
 	//array length
-	//N = atoi(arg);
+	N = atoi(arg);
 	
 	/* mpi starts*/
 	rc = MPI_Init (&argc, &argv);	
@@ -193,13 +195,15 @@ main (int argc, char** argv)
 				MPI_Wait(&Request2,&Stat2);
 				}
 		}
+		displacement++; //for Outputs after circle.
 				
 //		MPI_Barrier(MPI_COMM_WORLD);
 	}
-
+	
 	printf("\nAFTER\n");
+	printf("Array come from: rank%d\n",(rank+size-displacement)%size);
 
-	for (int j = 0; j < N_per_rank[rank]; j++)
+	for (int j = 0; j < N_per_rank[(rank+size-displacement)%size]; j++)
 	{
 		printf ("rank %d: %d\n", rank, buf[j]);
 	}
