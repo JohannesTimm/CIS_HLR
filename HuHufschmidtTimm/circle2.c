@@ -211,6 +211,7 @@ main (int argc, char** argv)
 	{
 		printf ("rank %d: %d\n", rank, buf[j]);
 	}
+	free(N_per_rank);
 	MPI_Finalize();
 	return EXIT_SUCCESS;
 }
