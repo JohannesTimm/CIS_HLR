@@ -44,8 +44,8 @@ circle (int* buf, int rank, int size, int* N_per_rank)
 		MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 	printf("%d,Waiting",rank);
+	//MPI_Waitall(2,&Request,&Stat);
 	MPI_Waitall(2,Request,Stat);
-	
 	return buf;
 }
 
@@ -163,7 +163,15 @@ main (int argc, char** argv)
 			//}
 				printf("Sending Abort");
 				MPI_Request *Request2 = malloc(sizeof(MPI_Request *)*size);
-				MPI_Status *Stat2 = malloc(sizeof(MPI_Status *)*size);
+				//Request2 = (MPI_Request *) malloc (sizeof(MPI_Request) * size);
+				MPI_Status *Stat2 = malloc(sizeof(MPI_Status *) * size);
+				//Stat2=(MPI_Status *) malloc(sizeof(MPI_Status) * size);
+				
+				//predefine the Requests to prevent segfaults
+				for (i=1; i<size; ++i)
+				{
+				 Request2[i]=MPI_REQUEST_NULL;
+				} 
 				for (i=0; i<size-1; i++)
 			//{
 			//	MPI_Send(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD);
