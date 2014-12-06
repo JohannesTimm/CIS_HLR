@@ -27,23 +27,23 @@ circle (int* buf, int rank, int size, int* N_per_rank)
 	MPI_Request Request[2];
 	if (rank == 0)
 	{
-		printf("Rank 0 Sending");
+//		printf("Rank 0 Sending");
 		MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
 		MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 	else if (rank == size -1)
 	{
-		printf("last Rank Sending");
+//		printf("last Rank Sending");
 		MPI_Isend(buf, N_per_rank[size-1], MPI_INT, 0, tag, MPI_COMM_WORLD, &Request[0]);
 		MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 	else 
 	{	
-		printf("%d, Sending",rank);
+//		printf("%d, Sending",rank);
 		MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
 		MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
-	printf("%d,Waiting",rank);
+//	printf("%d,Waiting",rank);
 	//MPI_Waitall(2,&Request,&Stat);
 	MPI_Waitall(2,Request,Stat);
 	return buf;
@@ -152,7 +152,7 @@ main (int argc, char** argv)
   	printf("%d,Cycle here",rank);
 	while(do_cycle)
 	{
-		printf("%d, calling circle",rank);
+//		printf("%d, calling circle",rank);
 		circle(buf,rank,size,N_per_rank);
 		//MPI_Barrier(MPI_COMM_WORLD);
 		if(rank==size-1)
@@ -199,7 +199,7 @@ main (int argc, char** argv)
 		{
 			MPI_Status Stat2;
 			MPI_Request Request2;
-			printf("%d,Test Abrot Msg",rank);
+//			printf("%d,Test Abrot Msg",rank);
 			MPI_Iprobe(size-1,tag1,MPI_COMM_WORLD,&flag,&Stat2);
 			if (flag)
 				{
