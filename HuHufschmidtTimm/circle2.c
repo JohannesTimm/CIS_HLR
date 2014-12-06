@@ -162,13 +162,15 @@ main (int argc, char** argv)
 				do_cycle = 0;	
 			//}
 				printf("Sending Abort");
-				MPI_Request *Request2 = malloc(sizeof(MPI_Request *)*size);
-				//Request2 = (MPI_Request *) malloc (sizeof(MPI_Request) * size);
-				MPI_Status *Stat2 = malloc(sizeof(MPI_Status *) * size);
-				//Stat2=(MPI_Status *) malloc(sizeof(MPI_Status) * size);
+				//MPI_Request *Request2 = malloc(sizeof(MPI_Request *)*size);
+				MPI_Request *Request2;
+				MPI_Status *Stat2;
+				Request2 = (MPI_Request *) malloc (sizeof(MPI_Request) * size);
+				//MPI_Status *Stat2 = malloc(sizeof(MPI_Status *) * size);
+				Stat2=(MPI_Status *) malloc(sizeof(MPI_Status) * size);
 				
 				//predefine the Requests to prevent segfaults
-				for (i=1; i<size; ++i)
+				for (i=0; i<size; ++i)
 				{
 				 Request2[i]=MPI_REQUEST_NULL;
 				} 
@@ -178,9 +180,9 @@ main (int argc, char** argv)
 			//}
 				{
 					MPI_Isend(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD, &Request2[i]);
-					MPI_Wait(&Request2[i],&Stat2[i]);
+					//MPI_Wait(&Request2[i],&Stat2[i]);
 				}
-				//MPI_Waitall(size,Request2,Stat2);
+				MPI_Waitall(size,Request2,Stat2);
 			}	
 		}
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -211,7 +213,7 @@ main (int argc, char** argv)
 				
 //		MPI_Barrier(MPI_COMM_WORLD);
 	}
-	
+	MPI_Barrier(MPI_COMM_WORLD);
 	printf("\nAFTER\n");
 	printf("Array come from: rank%d\n",(rank+size-displacement)%size);
 
@@ -219,6 +221,7 @@ main (int argc, char** argv)
 	{
 		printf ("rank %d: %d\n", rank, buf[j]);
 	}
+	
 	free(N_per_rank);
 	MPI_Finalize();
 	return EXIT_SUCCESS;
