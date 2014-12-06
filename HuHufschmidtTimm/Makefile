@@ -5,7 +5,7 @@ circle: circle2.c Makefile
 vampir: circle.c
 	#$(VAMPCC) circle2.c -o circle
 	vtcc -vt:cc mpicc -std=c99 -ggdb -Wall -Wextra circle2.c -o circle
-	mpiexec -np $NUMPROC ./circle
+	mpiexec -np $(NUMPROC) ./circle $(NUMPROC)
 	vampir circle.otf
 clean:
 	rm -f circle
