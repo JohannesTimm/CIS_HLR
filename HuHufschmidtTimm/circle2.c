@@ -19,7 +19,8 @@ init (int N, int rank, int size, int* N_per_rank)
 }
 
 int*
-circle (int* buf, int rank, int size, int* N_per_rank)
+//circle (int* buf, int rank, int size, int* N_per_rank)
+circle (int* buf, int rank, int size, int N)
 {
 	//todo
 	int tag = 1234;
@@ -27,21 +28,37 @@ circle (int* buf, int rank, int size, int* N_per_rank)
 	MPI_Request Request[2];
 	if (rank == 0)
 	{
-//		printf("Rank 0 Sending");
-		MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
-		MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
+////		printf("Rank 0 Sending");
+		//MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
+		//MPI_Irecv(buf, N_per_rank[size-1], MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
+	//}
+	//else if (rank == size -1)
+	//{
+////		printf("last Rank Sending");
+		//MPI_Isend(buf, N_per_rank[size-1], MPI_INT, 0, tag, MPI_COMM_WORLD, &Request[0]);
+		//MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
+	//}
+	//else 
+	//{	
+////		printf("%d, Sending",rank);
+		//MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
+		//MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
+	//}
+	//		printf("Rank 0 Sending");
+		MPI_Isend(buf, N/size +1 , MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
+		MPI_Irecv(buf,  N/size +1 , MPI_INT, size-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 	else if (rank == size -1)
 	{
 //		printf("last Rank Sending");
-		MPI_Isend(buf, N_per_rank[size-1], MPI_INT, 0, tag, MPI_COMM_WORLD, &Request[0]);
-		MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
+		MPI_Isend(buf,  N/size +1 , MPI_INT, 0, tag, MPI_COMM_WORLD, &Request[0]);
+		MPI_Irecv(buf,  N/size +1 , MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 	else 
 	{	
 //		printf("%d, Sending",rank);
-		MPI_Isend(buf, N_per_rank[rank], MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
-		MPI_Irecv(buf, N_per_rank[rank-1], MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
+		MPI_Isend(buf,  N/size +1, MPI_INT, rank+1, tag, MPI_COMM_WORLD, &Request[0]);
+		MPI_Irecv(buf, N/size +1 , MPI_INT, rank-1, tag, MPI_COMM_WORLD, &Request[1]);
 	}
 //	printf("%d,Waiting",rank);
 	//MPI_Waitall(2,&Request,&Stat);
@@ -62,6 +79,7 @@ main (int argc, char** argv)
 	int tag=999, tag1=99; //distinguish lines in Vampir from different tag. 
 	int flag;
 	int displacement=0; //for Outputs after circle. To calculate after circle how many displacements does a array take between processes.
+	int origin_rank; // After circle, the present array comes from which rank at initial time.
 	
 	//int msglen;
 	MPI_Status Stat;
@@ -85,19 +103,6 @@ main (int argc, char** argv)
 	MPI_Comm_rank (MPI_COMM_WORLD, &rank);	
 	MPI_Comm_size (MPI_COMM_WORLD, &size);
 	
-	//if (rank==size-1)
-  	//{
-  	//	
-	//	MPI_Request *Request2 = malloc(sizeof(MPI_Request)*size);
-	//	MPI_Status *Stat2 = malloc(sizeof(MPI_Status)*size);
-  	//}
-  	//else
-  	//{
-  	//	MPI_Status *Stat2;
-	//	MPI_Request *Request2;
-  	//}
-
-  	//todo myrank
   	/*array division scheme*/
 	
 	if (N < size) 
@@ -150,11 +155,11 @@ main (int argc, char** argv)
 		printf ("rank %d: %d\n", rank, buf[i]);
 	}
   	/*cycling, when condition is satified, send message from the last process to others processes*/ 
-  	printf("%d,Cycle here",rank);
+  	//printf("%d,Cycle here",rank);
 	while(do_cycle)
 	{
 //		printf("%d, calling circle",rank);
-		circle(buf,rank,size,N_per_rank);
+		circle(buf,rank,size,N);
 		//MPI_Barrier(MPI_COMM_WORLD);
 		if(rank==size-1)
 		{
@@ -162,7 +167,7 @@ main (int argc, char** argv)
 			{			
 				do_cycle = 0;	
 			//}
-				printf("Sending Abort");
+				//printf("Sending Abort");
 				//MPI_Request *Request2 = malloc(sizeof(MPI_Request *)*size);
 				MPI_Request *Request2;
 				MPI_Status *Stat2;
@@ -205,24 +210,44 @@ main (int argc, char** argv)
 			if (flag)
 				{
 			  	//MPI_Get_count(&Stat, MPI_INT, &msglen);
-				printf("%d, Recive MSG",rank);
+				//printf("%d, Recive MSG",rank);
 				MPI_Irecv(&do_cycle, 1, MPI_INT, size-1, tag1, MPI_COMM_WORLD, &Request2);
 				MPI_Wait(&Request2,&Stat2);
 				}
 		}
 		displacement++; //for Outputs after circle.
-				
-//		MPI_Barrier(MPI_COMM_WORLD);
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
-	printf("\nAFTER\n");
-	printf("Array come from: rank%d\n",(rank+size-displacement)%size);
-
-	for (int j = 0; j < N_per_rank[(rank+size-displacement)%size]; j++)
-	{
-		printf ("rank %d: %d\n", rank, buf[j]);
+	
+		//MPI_Barrier(MPI_COMM_WORLD);
 	}
 	
+	MPI_Barrier(MPI_COMM_WORLD);
+	printf("\nAFTER\n");
+
+	origin_rank = rank-displacement;
+	if(origin_rank < 0)
+	{
+		origin_rank = origin_rank +size;
+	}
+	//printf("i_dis:%dfrom %d\n", i_dis,rank);
+	//printf("N_per_rank[rank]%d\n", N_per_rank[rank]);
+	//printf("N_per_rank[rank+1]%d\n", N_per_rank[rank+1]);
+	//printf("N_per_rank[i_dis]%d\n", N_per_rank[i_dis]);
+	if (origin_rank < rest)
+	{
+		for (int j = 0; j < N/size + 1; j++)
+		{
+			printf ("rank %d: %d\n", rank, buf[j]);
+		}
+	}
+	else
+	{
+		for (int j = 0; j < N/size; j++)
+		{
+			printf ("rank %d: %d\n", rank, buf[j]);
+		}
+	}
+
+	MPI_Barrier(MPI_COMM_WORLD);
 	free(N_per_rank);
 	MPI_Finalize();
 	return EXIT_SUCCESS;
