@@ -1,5 +1,5 @@
-$VAMPCC="vtcc -vt:cc mpicc -std=c99 -ggdb -Wall -Wextra"
-$NUMPROC=3
+VAMPCC="vtcc -vt:cc mpicc -std=c99 -ggdb -Wall -Wextra"
+NUMPROC="3"
 circle: circle2.c Makefile
 	mpicc -std=c99 -g -ggdb -Wall -Wextra -fbounds-check circle2.c -o circle
 vampir: circle.c
