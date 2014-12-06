@@ -165,12 +165,12 @@ main (int argc, char** argv)
 				//MPI_Request *Request2 = malloc(sizeof(MPI_Request *)*size);
 				MPI_Request *Request2;
 				MPI_Status *Stat2;
-				Request2 = (MPI_Request *) malloc (sizeof(MPI_Request) * size);
+				Request2 = (MPI_Request *) malloc (sizeof(MPI_Request) * (size-1));
 				//MPI_Status *Stat2 = malloc(sizeof(MPI_Status *) * size);
-				Stat2=(MPI_Status *) malloc(sizeof(MPI_Status) * size);
+				Stat2=(MPI_Status *) malloc(sizeof(MPI_Status) * (size-1));
 				
 				//predefine the Requests to prevent segfaults
-				for (i=0; i<size; ++i)
+				for (i=0; i<size-1; ++i)
 				{
 				 Request2[i]=MPI_REQUEST_NULL;
 				} 
@@ -182,7 +182,7 @@ main (int argc, char** argv)
 					MPI_Isend(&do_cycle, 1, MPI_INT, i, tag1, MPI_COMM_WORLD, &Request2[i]);
 					//MPI_Wait(&Request2[i],&Stat2[i]);
 				}
-				MPI_Waitall(size,Request2,Stat2);
+				MPI_Waitall(size-1,Request2,Stat2);
 			}	
 		}
 		MPI_Barrier(MPI_COMM_WORLD);
