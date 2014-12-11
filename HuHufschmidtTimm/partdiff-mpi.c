@@ -341,7 +341,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	double star;                                /* four times center value minus 4 neigh.b values */
 	double residuum;                            /* residuum of current iteration                  */
 	double maxresiduum;                         /* maximum residuum value of a slave in iteration */
-	int const N_local =arguments -> N_local;
+	double globalmaxresiduum;
+	int const N_local =arguments->N_local;
 	int const N = arguments->N;
 	MPI_Status status;
   
@@ -355,6 +356,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	double fpisin = 0.0;
 
 	int term_iteration = options->term_iteration;
+	int error_code;
+	int tag_send, tag_recv;
 
 	/* initialize m1 and m2 depending on algorithm */
 	if (options->method == METH_JACOBI)
@@ -382,7 +385,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		maxresiduum = 0;
 
 		/* over all rows */
-		for (i = 1; i < N; i++)
+		for (i = 1; i < N_local; ++i)
 		{
 			double fpisin_i = 0.0;
 
@@ -392,7 +395,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			}
 
 			/* over all columns */
-			for (j = 1; j < N; j++)
+			for (j = 1; j < N; ++j)
 			{
 				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
 
@@ -412,18 +415,47 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			}
 		}
 
-		results->stat_iteration++;
-		results->stat_precision = maxresiduum;
+		//Communicate with the Other Processes to exchange Halo lines
+		if (rank>0)
+		{
+			tag_send=rank+10
+			tag_recv=rank-1+10
+			error_code=MPI_Sendrecv(Matrix_Out[1],N,MPI_Double, rank -1, tag_send,
+						Matrix_Out[0],N,MPI_Double, rank -1, tag_recv,
+						MPI_COMM_WORLD,status);
+			if (error_code!=MPI_SUCCESS)
+			{
+				printf("Error in SendRecv");
+			}
+		}
+		if (rank<size -1)
+		{
+			tag_send=rank+20
+			tag_recv=rank-1+20
+			error_code=MPI_Sendrecv(Matrix_Out[N_local-1],N,MPI_Double, rank +1, tag_send,
+						Matrix_Out[N_local],N,MPI_Double, rank +1, tag_recv,
+						MPI_COMM_WORLD,status);
+			if (error_code!=MPI_SUCCESS)
+			{
+				printf("Error in SendRecv");
+			}
+		}
+		//Find the global maximum of the residuum (later decide if this is low enough)
+		//Allreduce has no error handling
+		MPI_Allreduce(&maxresiduum,&globalmaxresiduum,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_wORLD);
 
 		/* exchange m1 and m2 */
 		i = m1;
 		m1 = m2;
 		m2 = i;
+		
+		results->stat_iteration++;
+		results->stat_precision = maxresiduum;
 
 		/* check for stopping calculation, depending on termination method */
 		if (options->termination == TERM_PREC)
 		{
-			if (maxresiduum < options->term_precision)
+			if (globalmaxresiduum < options->term_precision)
 			{
 				term_iteration = 0;
 			}
@@ -817,7 +849,16 @@ main (int argc, char** argv)
 	initMatrices(&arguments, &options);            /* ******************************************* */
 
 	gettimeofday(&start_time, NULL);                   /*  start timer         */
-	calculate(&arguments, &results, &options);                                      /*  solve the equation  */
+	if (options->method == METH_JACOBI)
+	{
+		//calculate(&arguments, &results, &options);                                     /*  solve the equation  */
+		calculate_MPI_Jacobi(&arguments, &results, &options);
+	}
+	else
+	{	
+		printf("The Gauss-Seidel Method is not yet implementet as a parallel program. Computing ressources are Wasted");
+		calculate(&arguments, &results, &options);     
+	}
 	gettimeofday(&comp_time, NULL);                   /*  stop timer          */
 
 	displayStatistics(&arguments, &results, &options);
