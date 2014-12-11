@@ -36,6 +36,11 @@ struct calculation_arguments
 	double    h;              /* length of a space between two lines            */
 	double    ***Matrix;      /* index matrix used for addressing M             */
 	double    *M;             /* two matrices with real values                  */
+	int N_local;
+	int rank;
+	int size;
+	int from;
+	int to;
 };
 
 struct calculation_results
@@ -61,7 +66,29 @@ static
 void
 initVariables (struct calculation_arguments* arguments, struct calculation_results* results, struct options const* options)
 {
+	int rest;
+	int const size = arguments -> size;
+	int const rank = arguments -> rank;
+	
+	MPI_Comm_rank (MPI_COMM_WORLD, &rank);	
+	MPI_Comm_size (MPI_COMM_WORLD, &size);
+		
 	arguments->N = (options->interlines * 8) + 9 - 1;
+	rest = (N + 1 -2) % size;
+		
+	if(rank < rest)
+	{
+		arguments -> N_local = (N + 1 -2) / size + 1;
+		arguments -> from = rank * ((N - 1)/size + 1) + 1;
+		//to=
+	}
+	else 
+	{
+		arguments -> N_local = (N + 1 -2) / size;
+		arguments -> from = rank * ((N - 1)/size) + rest + 1;
+		//to=
+	}
+	
 	arguments->num_matrices = (options->method == METH_JACOBI) ? 2 : 1;
 	arguments->h = 1.0 / arguments->N;
 
@@ -118,17 +145,18 @@ allocateMatrices (struct calculation_arguments* arguments)
 	uint64_t i, j;
 
 	uint64_t const N = arguments->N;
+	int const N_local = arguments -> N_local;
 
-	arguments->M = allocateMemory(arguments->num_matrices * (N + 1) * (N + 1) * sizeof(double));
+	arguments->M = allocateMemory(arguments->num_matrices * (N_local + 2) * (N + 1) * sizeof(double));
 	arguments->Matrix = allocateMemory(arguments->num_matrices * sizeof(double**));
 
 	for (i = 0; i < arguments->num_matrices; i++)
 	{
-		arguments->Matrix[i] = allocateMemory((N + 1) * sizeof(double*));
+		arguments->Matrix[i] = allocateMemory((N_local + 2) * sizeof(double*));
 
-		for (j = 0; j <= N; j++)
+		for (j = 0; j < N_local + 2 ; j++)
 		{
-			arguments->Matrix[i][j] = arguments->M + (i * (N + 1) * (N + 1)) + (j * (N + 1));
+			arguments->Matrix[i][j] = arguments->M + (i * (N_local + 2) * (N + 1)) + (j * (N + 1));
 		}
 	}
 }
@@ -143,13 +171,17 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 	uint64_t g, i, j;                                /*  local variables for loops   */
 
 	uint64_t const N = arguments->N;
+	int const N_local =argument -> N_local;
 	double const h = arguments->h;
 	double*** Matrix = arguments->Matrix;
+	int from = arguments -> from;
+	int rank = arguments -> rank;
+	int size = arguments -> size;
 
 	/* initialize matrix/matrices with zeros */
 	for (g = 0; g < arguments->num_matrices; g++)
 	{
-		for (i = 0; i <= N; i++)
+		for (i = 0; i < N_local + 2; i++)
 		{
 			for (j = 0; j <= N; j++)
 			{
@@ -163,15 +195,27 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 	{
 		for (g = 0; g < arguments->num_matrices; g++)
 		{
-			for (i = 0; i <= N; i++)
+			for (i = 0; i < N_local + 2; i++)
 			{
-				Matrix[g][i][0] = 1.0 - (h * i);
-				Matrix[g][i][N] = h * i;
-				Matrix[g][0][i] = 1.0 - (h * i);
-				Matrix[g][N][i] = h * i;
+				Matrix[g][i][0] = 1.0 - (h * i) - (from - 1) * h;
+				Matrix[g][i][N] = h * i + (from - 1) * h;
+			}
+			if (rank == 0)	
+			{	
+				for (i = 0; i <= N; i++)
+				{
+					Matrix[g][0][i] = 1.0 - (h * i);
+				}
+			}
+			if (rank + 1 == size)
+			{
+				for (i = 0; i <= N; i++)
+				{
+					Matrix[g][N][i] = h * i;
+				}
 			}
 
-			Matrix[g][N][0] = 0.0;
+			Matrix[g][N_local + 1][0] = 0.0;
 			Matrix[g][0][N] = 0.0;
 		}
 	}
@@ -557,6 +601,15 @@ main (int argc, char** argv)
 	struct options options;
 	struct calculation_arguments arguments;
 	struct calculation_results results;
+	int rc;
+	
+	/* mpi starts*/
+	rc= MPI_Init(&argc, &argv);
+	if (rc != MPI_SUCCESS) 
+	{
+		printf ("Error starting MPI program. Terminating.\n");    	
+		MPI_Abort(MPI_COMM_WORLD, rc);
+    }
 
 	/* get parameters */
 	AskParams(&options, argc, argv);              /* ************************* */
