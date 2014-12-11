@@ -148,7 +148,7 @@ allocateMatrices (struct calculation_arguments* arguments)
 	uint64_t i, j;
 
 	uint64_t const N = arguments->N;
-	int const N_local = arguments -> N_local;
+	uint64_t const N_local = arguments -> N_local;
 
 	arguments->M = allocateMemory(arguments->num_matrices * (N_local + 2) * (N + 1) * sizeof(double));
 	arguments->Matrix = allocateMemory(arguments->num_matrices * sizeof(double**));
@@ -174,7 +174,7 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 	uint64_t g, i, j;                                /*  local variables for loops   */
 
 	uint64_t const N = arguments -> N;
-	int const N_local =arguments -> N_local;
+	uint64_t const N_local =arguments -> N_local;
 	double const h = arguments->h;
 	double*** Matrix = arguments->Matrix;
 	int from = arguments -> from;
@@ -346,8 +346,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int const N = arguments->N;
 	MPI_Status status;
   
- 	int from = arguments -> from;
- 	int to = arguments -> to;
+ 	//int from = arguments -> from;
+ 	//int to = arguments -> to;
  	int const size = arguments -> size;
   	int const rank = arguments -> rank;
 	double const h = arguments->h;
@@ -418,11 +418,11 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		//Communicate with the Other Processes to exchange Halo lines
 		if (rank>0)
 		{
-			tag_send=rank+10
-			tag_recv=rank-1+10
-			error_code=MPI_Sendrecv(Matrix_Out[1],N,MPI_Double, rank -1, tag_send,
-						Matrix_Out[0],N,MPI_Double, rank -1, tag_recv,
-						MPI_COMM_WORLD,status);
+			tag_send=rank+10;
+			tag_recv=rank-1+10;
+			error_code=MPI_Sendrecv(Matrix_Out[1],N,MPI_DOUBLE, rank -1, tag_send,
+						Matrix_Out[0],N,MPI_DOUBLE, rank -1, tag_recv,
+						MPI_COMM_WORLD,&status);
 			if (error_code!=MPI_SUCCESS)
 			{
 				printf("Error in SendRecv");
@@ -430,11 +430,11 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		}
 		if (rank<size -1)
 		{
-			tag_send=rank+20
-			tag_recv=rank-1+20
-			error_code=MPI_Sendrecv(Matrix_Out[N_local-1],N,MPI_Double, rank +1, tag_send,
-						Matrix_Out[N_local],N,MPI_Double, rank +1, tag_recv,
-						MPI_COMM_WORLD,status);
+			tag_send=rank+20;
+			tag_recv=rank-1+20;
+			error_code=MPI_Sendrecv(Matrix_Out[N_local-1],N,MPI_DOUBLE, rank +1, tag_send,
+						Matrix_Out[N_local],N,MPI_DOUBLE, rank +1, tag_recv,
+						MPI_COMM_WORLD,&status);
 			if (error_code!=MPI_SUCCESS)
 			{
 				printf("Error in SendRecv");
@@ -442,7 +442,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		}
 		//Find the global maximum of the residuum (later decide if this is low enough)
 		//Allreduce has no error handling
-		MPI_Allreduce(&maxresiduum,&globalmaxresiduum,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_wORLD);
+		MPI_Allreduce(&maxresiduum,&globalmaxresiduum,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
 
 		/* exchange m1 and m2 */
 		i = m1;
@@ -849,7 +849,7 @@ main (int argc, char** argv)
 	initMatrices(&arguments, &options);            /* ******************************************* */
 
 	gettimeofday(&start_time, NULL);                   /*  start timer         */
-	if (options->method == METH_JACOBI)
+	if (options.method == METH_JACOBI)
 	{
 		//calculate(&arguments, &results, &options);                                     /*  solve the equation  */
 		calculate_MPI_Jacobi(&arguments, &results, &options);
