@@ -26,6 +26,7 @@
 #include <math.h>
 #include <malloc.h>
 #include <sys/time.h>
+#include <mpi.h>
 
 #include "partdiff-mpi.h"
 
@@ -67,12 +68,14 @@ void
 initVariables (struct calculation_arguments* arguments, struct calculation_results* results, struct options const* options)
 {
 	int rest;
-	int const size = arguments -> size;
-	int const rank = arguments -> rank;
+	uint64_t const N = arguments->N;
 	
-	MPI_Comm_rank (MPI_COMM_WORLD, &rank);	
-	MPI_Comm_size (MPI_COMM_WORLD, &size);
-		
+	MPI_Comm_rank (MPI_COMM_WORLD, &arguments -> rank);	
+	MPI_Comm_size (MPI_COMM_WORLD, &arguments -> size);
+	
+	int const size = arguments -> size;
+	int const rank = arguments -> rank;	
+	
 	arguments->N = (options->interlines * 8) + 9 - 1;
 	rest = (N + 1 -2) % size;
 		
@@ -80,13 +83,13 @@ initVariables (struct calculation_arguments* arguments, struct calculation_resul
 	{
 		arguments -> N_local = (N + 1 -2) / size + 1;
 		arguments -> from = rank * ((N - 1)/size + 1) + 1;
-		arguments -> to = from + (N-1)/size;
+		arguments -> to = arguments -> from + (N-1)/size;
 	}
 	else 
 	{
 		arguments -> N_local = (N + 1 -2) / size;
 		arguments -> from = rank * ((N - 1)/size) + rest + 1;
-		arguments -> to = from + (N-1)/size - 1;
+		arguments -> to = arguments -> from + (N-1)/size - 1;
 	}
 	
 	arguments->num_matrices = (options->method == METH_JACOBI) ? 2 : 1;
@@ -170,8 +173,8 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 {
 	uint64_t g, i, j;                                /*  local variables for loops   */
 
-	uint64_t const N = arguments->N;
-	int const N_local =argument -> N_local;
+	uint64_t const N = arguments -> N;
+	int const N_local =arguments -> N_local;
 	double const h = arguments->h;
 	double*** Matrix = arguments->Matrix;
 	int from = arguments -> from;
@@ -603,16 +606,19 @@ displayStatistics (struct calculation_arguments const* arguments, struct calcula
  */
 static
 void
-DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options, int rank, int size, int from, int to)
+//DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options, int rank, int size, int from, int to)
+DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options)
 {
   int const elements = 8 * options->interlines + 9;
 
   int x, y;
   double** Matrix = arguments->Matrix[results->m];
   MPI_Status status;
-
-  int const from = arguments -> from;
-  int const to = arguments -> to;
+  
+  int from = arguments -> from;
+  int to = arguments -> to;
+  int const size = arguments -> size;
+  int const rank = arguments -> rank;
   /* first line belongs to rank 0 */
   if (rank == 0)
     from--;
