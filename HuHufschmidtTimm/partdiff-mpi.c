@@ -1,4 +1,4 @@
-/****************************************************************************/
+ /****************************************************************************/
 /****************************************************************************/
 /**                                                                        **/
 /**                TU Muenchen - Institut fuer Informatik                  **/
@@ -325,14 +325,93 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 		double** Matrix_In  = arguments->Matrix[m2];
 
 		maxresiduum = 0;
-
 		
-		//call sub_iHaloExchance(Piece,rank,numProcess,root,MPI_COMM_WORLD, requestUp, requestDown)
-		//call sub_calc_mpi
-		//call CALL MPI_ALLGATHER(achieveAcc, 1, MPI_LOGICAL,&
-		//		&                  vecAbort, 1, MPI_LOGICAL,  &
-		//		&                  MPI_COMM_WORLD, ierr)
-		//if (count(vecAbort)== numProcess)) term_iteration=0
+		//openmp here
+		//openmp reduce max maxresiduum
+		/* over all rows */
+		for (i = 1; i < N_local; i++)
+		{
+			double fpisin_i = 0.0;
+
+			if (options->inf_func == FUNC_FPISIN)
+			{
+				fpisin_i = fpisin * sin(pih * (double)i);
+			}
+			
+			if (i=1) //for first line excahnge halos (onlz the thread actuallz computing this has toit in the jacobi scheme)
+			{ 
+				if (rank>0) //exclude top rank
+				{
+					MPI_SENDRECV()
+				} 
+			}
+			
+			if (i=N_local-1) // exchange last halo lines
+			{	
+				if (rank<max_rank) // exclude last rank
+				{
+					MPI_SENDRECV()
+				}
+			}
+			 
+			/* over all columns */
+			for (j = 1; j < N; j++)
+			{
+				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+
+				if (options->inf_func == FUNC_FPISIN)
+				{
+					star += fpisin_i * sin(pih * (double)j);
+				}
+
+				if (options->termination == TERM_PREC || term_iteration == 1)
+				{
+					residuum = Matrix_In[i][j] - star;
+					residuum = (residuum < 0) ? -residuum : residuum;
+					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+				}
+
+				Matrix_Out[i][j] = star;
+			}
+		}
+		//end openmp
+		localmaxresiduum // got form openmp
+
+		//this needs to be thread/mpi safe!!
+		results->stat_iteration++;
+		results->stat_precision = maxresiduum;
+
+		/* exchange m1 and m2 */
+		i = m1;
+		m1 = m2;
+		m2 = i;
+
+		/* check for stopping calculation, depending on termination method */
+		if (options->termination == TERM_PREC)
+		{
+			MPIALLREDUCE (Max GlobalMax, localMax)
+			if (rank=0)
+			{
+				if (maxresiduum < options->term_precision)
+				{
+				term_iteration = 0;
+				}
+				else
+				{ 
+				term_iteration =1;
+				}
+			}
+			MPI_BCAST(from rank 0 to everzbodz, term_iteration,1,MPI_INT)	
+		}
+		else if (options->termination == TERM_ITER) // works without special syncronisation
+		{
+			term_iteration--;
+		}
+	}
+
+	results->m = m2;
+}
+		
 		
 /* ************************************************************************* */
 /* sub_iHALOExcahnage: controls the functions taht send halo lines         */
