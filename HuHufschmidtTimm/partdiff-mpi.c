@@ -80,13 +80,13 @@ initVariables (struct calculation_arguments* arguments, struct calculation_resul
 	{
 		arguments -> N_local = (N + 1 -2) / size + 1;
 		arguments -> from = rank * ((N - 1)/size + 1) + 1;
-		//to=
+		arguments -> to = from + (N-1)/size;
 	}
 	else 
 	{
 		arguments -> N_local = (N + 1 -2) / size;
 		arguments -> from = rank * ((N - 1)/size) + rest + 1;
-		//to=
+		arguments -> to = from + (N-1)/size - 1;
 	}
 	
 	arguments->num_matrices = (options->method == METH_JACOBI) ? 2 : 1;
@@ -324,184 +324,184 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 }
 
 
-/*************************************************************************** */
-/* calculateMPI: calculates using MPI communication
-/* ************************************************************************** */
-static
-void
-calculate (struct calculation_arguments const* arguments, struct calculation_results *results, struct options const* options)
-{
-	int i, j;                                   /* local variables for loops  */
-	int m1, m2;                                 /* used as indices for old and new matrices       */
-	double star;                                /* four times center value minus 4 neigh.b values */
-	double residuum;                            /* residuum of current iteration                  */
-	double maxresiduum;                         /* maximum residuum value of a slave in iteration */
+///*************************************************************************** */
+///* calculateMPI: calculates using MPI communication
+///* ************************************************************************** */
+//static
+//void
+//calculate (struct calculation_arguments const* arguments, struct calculation_results *results, struct options const* options)
+//{
+	//int i, j;                                   /* local variables for loops  */
+	//int m1, m2;                                 /* used as indices for old and new matrices       */
+	//double star;                                /* four times center value minus 4 neigh.b values */
+	//double residuum;                            /* residuum of current iteration                  */
+	//double maxresiduum;                         /* maximum residuum value of a slave in iteration */
 
-	int const N = arguments->N;
-	double const h = arguments->h;
+	//int const N = arguments->N;
+	//double const h = arguments->h;
 
-	double pih = 0.0;
-	double fpisin = 0.0;
+	//double pih = 0.0;
+	//double fpisin = 0.0;
 
-	int term_iteration = options->term_iteration;
+	//int term_iteration = options->term_iteration;
 
-	/* initialize m1 and m2 depending on algorithm */
-	if (options->method == METH_JACOBI)
-	{
-		m1 = 0;
-		m2 = 1;
-	}
-	else
-	{
-		m1 = 0;
-		m2 = 0;
-	}
+	///* initialize m1 and m2 depending on algorithm */
+	//if (options->method == METH_JACOBI)
+	//{
+		//m1 = 0;
+		//m2 = 1;
+	//}
+	//else
+	//{
+		//m1 = 0;
+		//m2 = 0;
+	//}
 
-	if (options->inf_func == FUNC_FPISIN)
-	{
-		pih = PI * h;
-		fpisin = 0.25 * TWO_PI_SQUARE * h * h;
-	}
+	//if (options->inf_func == FUNC_FPISIN)
+	//{
+		//pih = PI * h;
+		//fpisin = 0.25 * TWO_PI_SQUARE * h * h;
+	//}
 
-	while (term_iteration > 0)
-	{
-		double** Matrix_Out = arguments->Matrix[m1];
-		double** Matrix_In  = arguments->Matrix[m2];
+	//while (term_iteration > 0)
+	//{
+		//double** Matrix_Out = arguments->Matrix[m1];
+		//double** Matrix_In  = arguments->Matrix[m2];
 
-		maxresiduum = 0;
+		//maxresiduum = 0;
 		
-		//openmp here
-		//openmp reduce max maxresiduum
-		/* over all rows */
-		for (i = 1; i < N_local; i++)
-		{
-			double fpisin_i = 0.0;
+		////openmp here
+		////openmp reduce max maxresiduum
+		///* over all rows */
+		//for (i = 1; i < N_local; i++)
+		//{
+			//double fpisin_i = 0.0;
 
-			if (options->inf_func == FUNC_FPISIN)
-			{
-				fpisin_i = fpisin * sin(pih * (double)i);
-			}
+			//if (options->inf_func == FUNC_FPISIN)
+			//{
+				//fpisin_i = fpisin * sin(pih * (double)i);
+			//}
 			
-			if (i=1) //for first line excahnge halos (onlz the thread actuallz computing this has toit in the jacobi scheme)
-			{ 
-				if (rank>0) //exclude top rank
-				{
-					MPI_SENDRECV()
-				} 
-			}
+			//if (i=1) //for first line excahnge halos (onlz the thread actuallz computing this has toit in the jacobi scheme)
+			//{ 
+				//if (rank>0) //exclude top rank
+				//{
+					//MPI_SENDRECV()
+				//} 
+			//}
 			
-			if (i=N_local-1) // exchange last halo lines
-			{	
-				if (rank<max_rank) // exclude last rank
-				{
-					MPI_SENDRECV()
-				}
-			}
+			//if (i=N_local-1) // exchange last halo lines
+			//{	
+				//if (rank<max_rank) // exclude last rank
+				//{
+					//MPI_SENDRECV()
+				//}
+			//}
 			 
-			/* over all columns */
-			for (j = 1; j < N; j++)
-			{
-				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+			///* over all columns */
+			//for (j = 1; j < N; j++)
+			//{
+				//star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
 
-				if (options->inf_func == FUNC_FPISIN)
-				{
-					star += fpisin_i * sin(pih * (double)j);
-				}
+				//if (options->inf_func == FUNC_FPISIN)
+				//{
+					//star += fpisin_i * sin(pih * (double)j);
+				//}
 
-				if (options->termination == TERM_PREC || term_iteration == 1)
-				{
-					residuum = Matrix_In[i][j] - star;
-					residuum = (residuum < 0) ? -residuum : residuum;
-					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
-				}
+				//if (options->termination == TERM_PREC || term_iteration == 1)
+				//{
+					//residuum = Matrix_In[i][j] - star;
+					//residuum = (residuum < 0) ? -residuum : residuum;
+					//maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+				//}
 
-				Matrix_Out[i][j] = star;
-			}
-		}
-		//end openmp
-		localmaxresiduum // got form openmp
+				//Matrix_Out[i][j] = star;
+			//}
+		//}
+		////end openmp
+		//localmaxresiduum // got form openmp
 
-		//this needs to be thread/mpi safe!!
-		results->stat_iteration++;
-		results->stat_precision = maxresiduum;
+		////this needs to be thread/mpi safe!!
+		//results->stat_iteration++;
+		//results->stat_precision = maxresiduum;
 
-		/* exchange m1 and m2 */
-		i = m1;
-		m1 = m2;
-		m2 = i;
+		///* exchange m1 and m2 */
+		//i = m1;
+		//m1 = m2;
+		//m2 = i;
 
-		/* check for stopping calculation, depending on termination method */
-		if (options->termination == TERM_PREC)
-		{
-			MPIALLREDUCE (Max GlobalMax, localMax)
-			if (rank=0)
-			{
-				if (maxresiduum < options->term_precision)
-				{
-				term_iteration = 0;
-				}
-				else
-				{ 
-				term_iteration =1;
-				}
-			}
-			MPI_BCAST(from rank 0 to everzbodz, term_iteration,1,MPI_INT)	
-		}
-		else if (options->termination == TERM_ITER) // works without special syncronisation
-		{
-			term_iteration--;
-		}
-	}
+		///* check for stopping calculation, depending on termination method */
+		//if (options->termination == TERM_PREC)
+		//{
+			//MPIALLREDUCE (Max GlobalMax, localMax)
+			//if (rank=0)
+			//{
+				//if (maxresiduum < options->term_precision)
+				//{
+				//term_iteration = 0;
+				//}
+				//else
+				//{ 
+				//term_iteration =1;
+				//}
+			//}
+			//MPI_BCAST(from rank 0 to everzbodz, term_iteration,1,MPI_INT)	
+		//}
+		//else if (options->termination == TERM_ITER) // works without special syncronisation
+		//{
+			//term_iteration--;
+		//}
+	//}
 
-	results->m = m2;
-}
+	//results->m = m2;
+//}
 		
 		
-/* ************************************************************************* */
-/* sub_iHALOExcahnage: controls the functions taht send halo lines         */
-/* ************************************************************************ */
-static
-void
-sub_iHaloExchance(Piece,rank,numProcess,root,COMM,requestUp, requestDown)
-	{
+///* ************************************************************************* */
+///* sub_iHALOExcahnage: controls the functions taht send halo lines         */
+///* ************************************************************************ */
+//static
+//void
+//sub_iHaloExchance(Piece,rank,numProcess,root,COMM,requestUp, requestDown)
+	//{
 		
-		double** Piece;
-		int root, COMM, numProcess, rank;
+		//double** Piece;
+		//int root, COMM, numProcess, rank;
 		
-		MPI_Request* requestUp, requestDown; //request[2]
-		MPI_Status   status;
+		//MPI_Request* requestUp, requestDown; //request[2]
+		//MPI_Status   status;
 		
-		//!UP: Values, that goes from rank to rank-1 (If Root is on top, it goes UP)
-		//! Tag = 100 + source
-		//call sub_iHaloSendUp(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestUp(1))
-		if (rank>root)
-		{
-		 if (MPI_WAIT(requestUp[1], status))!=MPI_SUCSESS)
-		  {printf("ERROR WAIT");}
-		} 
+		////!UP: Values, that goes from rank to rank-1 (If Root is on top, it goes UP)
+		////! Tag = 100 + source
+		////call sub_iHaloSendUp(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestUp(1))
+		//if (rank>root)
+		//{
+		 //if (MPI_WAIT(requestUp[1], status))!=MPI_SUCSESS)
+		  //{printf("ERROR WAIT");}
+		//} 
 		
-		//call sub_iHaloRecvUp(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestUp(2))
-		if (rank<numProcess-1)
-		{
-		if (MPI_WAIT(requestUp[2], status))!=MPI_SUCSESS)
-		  {printf("ERROR WAIT");}
-		 }
-		//!-------------------------------------------------------------------------------
-		//!DOWN: Values, that goes from rank to rank+1 (If Root is on top, it goes DOWN) 
-		//! Tag = 200 + source
-		//call sub_iHaloSendDown(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestDown(1))
-		if (rank<numProcess-1) 
-		{
-		if (MPI_WAIT(requestDown[1], status))!=MPI_SUCSESS)
-		  {printf("ERROR WAIT");}
-		}
-		//call sub_iHaloRecvDown(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestDown(2))
-		if (rank>root) 
-		{
-		if (MPI_WAIT(requestDown[2], status))!=MPI_SUCSESS)
-		  {printf("ERROR WAIT");}
-		}
-	}		
+		////call sub_iHaloRecvUp(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestUp(2))
+		//if (rank<numProcess-1)
+		//{
+		//if (MPI_WAIT(requestUp[2], status))!=MPI_SUCSESS)
+		  //{printf("ERROR WAIT");}
+		 //}
+		////!-------------------------------------------------------------------------------
+		////!DOWN: Values, that goes from rank to rank+1 (If Root is on top, it goes DOWN) 
+		////! Tag = 200 + source
+		////call sub_iHaloSendDown(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestDown(1))
+		//if (rank<numProcess-1) 
+		//{
+		//if (MPI_WAIT(requestDown[1], status))!=MPI_SUCSESS)
+		  //{printf("ERROR WAIT");}
+		//}
+		////call sub_iHaloRecvDown(Piece,rank,numProcess,root,MPI_COMM_WORLD,requestDown(2))
+		//if (rank>root) 
+		//{
+		//if (MPI_WAIT(requestDown[2], status))!=MPI_SUCSESS)
+		  //{printf("ERROR WAIT");}
+		//}
+	//}		
 	
 /* ************************************************************************ */
 /*  displayStatistics: displays some statistics about the calculation       */
@@ -557,39 +557,120 @@ displayStatistics (struct calculation_arguments const* arguments, struct calcula
 	printf("\n");
 }
 
-/****************************************************************************/
-/** Beschreibung der Funktion DisplayMatrix:                               **/
-/**                                                                        **/
-/** Die Funktion DisplayMatrix gibt eine Matrix                            **/
-/** in einer "ubersichtlichen Art und Weise auf die Standardausgabe aus.   **/
-/**                                                                        **/
-/** Die "Ubersichtlichkeit wird erreicht, indem nur ein Teil der Matrix    **/
-/** ausgegeben wird. Aus der Matrix werden die Randzeilen/-spalten sowie   **/
-/** sieben Zwischenzeilen ausgegeben.                                      **/
-/****************************************************************************/
+///****************************************************************************/
+///** Beschreibung der Funktion DisplayMatrix:                               **/
+///**                                                                        **/
+///** Die Funktion DisplayMatrix gibt eine Matrix                            **/
+///** in einer "ubersichtlichen Art und Weise auf die Standardausgabe aus.   **/
+///**                                                                        **/
+///** Die "Ubersichtlichkeit wird erreicht, indem nur ein Teil der Matrix    **/
+///** ausgegeben wird. Aus der Matrix werden die Randzeilen/-spalten sowie   **/
+///** sieben Zwischenzeilen ausgegeben.                                      **/
+///****************************************************************************/
+//static
+//void
+//DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options)
+//{
+	//int x, y;
+
+	//double** Matrix = arguments->Matrix[results->m];
+
+	//int const interlines = options->interlines;
+
+	//printf("Matrix:\n");
+
+	//for (y = 0; y < 9; y++)
+	//{
+		//for (x = 0; x < 9; x++)
+		//{
+			//printf ("%7.4f", Matrix[y * (interlines + 1)][x * (interlines + 1)]);
+		//}
+
+		//printf ("\n");
+	//}
+
+	//fflush (stdout);
+//}
+/**
+ * rank and size are the MPI rank and size, respectively.
+ * from and to denote the global(!) range of lines that this process is responsible for.
+ *
+ * Example with 9 matrix lines and 4 processes:
+ * - rank 0 is responsible for 1-2, rank 1 for 3-4, rank 2 for 5-6 and rank 3 for 7.
+ *   Lines 0 and 8 are not included because they are not calculated.
+ * - Each process stores two halo lines in its matrix (except for ranks 0 and 3 that only store one).
+ * - For instance: Rank 2 has four lines 0-3 but only calculates 1-2 because 0 and 3 are halo lines for other processes. It is responsible for (global) lines 5-6.
+ */
 static
 void
-DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options)
+DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options, int rank, int size, int from, int to)
 {
-	int x, y;
+  int const elements = 8 * options->interlines + 9;
 
-	double** Matrix = arguments->Matrix[results->m];
+  int x, y;
+  double** Matrix = arguments->Matrix[results->m];
+  MPI_Status status;
 
-	int const interlines = options->interlines;
+  int const from = arguments -> from;
+  int const to = arguments -> to;
+  /* first line belongs to rank 0 */
+  if (rank == 0)
+    from--;
 
-	printf("Matrix:\n");
+  /* last line belongs to rank size - 1 */
+  if (rank + 1 == size)
+    to++;
 
-	for (y = 0; y < 9; y++)
-	{
-		for (x = 0; x < 9; x++)
-		{
-			printf ("%7.4f", Matrix[y * (interlines + 1)][x * (interlines + 1)]);
-		}
+  if (rank == 0)
+    printf("Matrix:\n");
 
-		printf ("\n");
-	}
+  for (y = 0; y < 9; y++)
+  {
+    int line = y * (options->interlines + 1);
 
-	fflush (stdout);
+    if (rank == 0)
+    {
+      /* check whether this line belongs to rank 0 */
+      if (line < from || line > to)
+      {
+        /* use the tag to receive the lines in the correct order
+         * the line is stored in Matrix[0], because we do not need it anymore */
+        MPI_Recv(Matrix[0], elements, MPI_DOUBLE, MPI_ANY_SOURCE, 42 + y, MPI_COMM_WORLD, &status);
+      }
+    }
+    else
+    {
+      if (line >= from && line <= to)
+      {
+        /* if the line belongs to this process, send it to rank 0
+         * (line - from + 1) is used to calculate the correct local address */
+        MPI_Send(Matrix[line - from + 1], elements, MPI_DOUBLE, 0, 42 + y, MPI_COMM_WORLD);
+      }
+    }
+
+    if (rank == 0)
+    {
+      for (x = 0; x < 9; x++)
+      {
+        int col = x * (options->interlines + 1);
+
+        if (line >= from && line <= to)
+        {
+          /* this line belongs to rank 0 */
+          printf("%7.4f", Matrix[line][col]);
+        }
+        else
+        {
+          /* this line belongs to another rank and was received above */
+          printf("%7.4f", Matrix[0][col]);
+        }
+      }
+
+      printf("\n");
+    }
+  }
+
+  fflush(stdout);
 }
 
 /* ************************************************************************ */
@@ -625,8 +706,9 @@ main (int argc, char** argv)
 
 	displayStatistics(&arguments, &results, &options);
 	DisplayMatrix(&arguments, &results, &options);
+	//DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options, int rank, int size, int from, int to)
 
 	freeMatrices(&arguments);                                       /*  free memory     */
-
+	MPI_Finalize();
 	return 0;
 }
