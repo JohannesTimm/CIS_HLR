@@ -200,7 +200,8 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 	/* initialize matrix/matrices with zeros */
 	for (g = 0; g < arguments->num_matrices; ++g)
 	{
-		for (i = 0; i < N_local + 2; ++i)
+		//for (i = 0; i < N_local + 2; ++i)
+		for (i = 0; i <= N_local + 1; ++i)
 		{
 			for (j = 0; j <= N; ++j)
 			{
@@ -214,7 +215,8 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 	{
 		for (g = 0; g < arguments->num_matrices; ++g)
 		{
-			for (i = 0; i < N_local + 2; i++)
+			//for (i = 0; i < N_local + 2; i++)
+			for (i = 0; i < N_local + 1; i++)
 			{
 				Matrix[g][i][0] = 1.0 - (h * i) - (from - 1) * h;
 				Matrix[g][i][N] = h * i + (from - 1) * h;
@@ -232,11 +234,13 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 				for (i = 0; i <= N; ++i)
 				{
 					Matrix[g][N_local + 1][i] = h * i;
+					//Matrix[g][N_local][i] = h * i;
 				}
 			}
 			for (i = 0; i <= N; ++i)
 			{
-				Matrix[g][N_local + 1][0] = 0.0;
+				Matrix[g][N_local + 1][i] = h * i;
+				//Matrix[g][N_local][i] = h * i;
 				Matrix[g][0][N] = 0.0;
 			}
 		}
@@ -364,8 +368,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int const N = arguments->N;
 	MPI_Status status;
   
- 	//int from = arguments -> from;
- 	//int to = arguments -> to;
+ 	int from = arguments -> from;
+ 	int to = arguments -> to;
  	int const size = arguments -> size;
   	int const rank = arguments -> rank;
 	double const h = arguments->h;
@@ -376,6 +380,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int term_iteration = options->term_iteration;
 	int error_code;
 	int tag_send, tag_recv;
+	
+	printf("Rank %d, N_local %d, Interval %d, From %d, To %d \n",rank,N_local,(to-from),from, to);
 
 	/* initialize m1 and m2 depending on algorithm */
 	if (options->method == METH_JACOBI)
@@ -403,7 +409,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		maxresiduum = 0;
 
 		/* over all rows */
-		for (i = 1; i < N_local; ++i)
+		for (i = 1; i <= N_local; ++i)
 		{
 			double fpisin_i = 0.0;
 
@@ -452,9 +458,13 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		{
 			tag_send=rank;
 			tag_recv=rank+1;
-			error_code=MPI_Sendrecv(Matrix_Out[N_local + 2 - 2],N + 1,MPI_DOUBLE, rank +1, tag_send,
+			/*error_code=MPI_Sendrecv(Matrix_Out[N_local + 2 - 2],N + 1,MPI_DOUBLE, rank +1, tag_send,
 						Matrix_Out[N_local + 2 - 1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
 						MPI_COMM_WORLD,&status);
+			*/			
+			error_code=MPI_Sendrecv(Matrix_Out[N_local],N + 1,MPI_DOUBLE, rank +1, tag_send,
+						Matrix_Out[N_local+1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
+						MPI_COMM_WORLD,&status);			
 			if (error_code!=MPI_SUCCESS)
 			{
 				printf("Error in SendRecv");
@@ -472,7 +482,9 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		results->stat_iteration++;
 		results->stat_precision_local = maxresiduum;
 		results->stat_precision = globalmaxresiduum;
-
+		
+		MPI_Barrier(MPI_COMM_WORLD);
+		
 		/* check for stopping calculation, depending on termination method */
 		if (options->termination == TERM_PREC)
 		{
@@ -777,6 +789,7 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
 
   int x, y;
   double** Matrix = arguments->Matrix[results->m];
+  double* result_vec;
   MPI_Status status;
   
   int from = arguments -> from;
@@ -784,6 +797,7 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
   
   int const size = arguments -> size;
   int const rank = arguments -> rank;
+  result_vec=malloc(elements*sizeof(double));
   /* first line belongs to rank 0 */
   if (rank == 0)
     from--;
@@ -809,7 +823,8 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
         /* use the tag to receive the lines in the correct order
          * the line is stored in Matrix[0], because we do not need it anymore */
         //printf("Recv Line, %d , with tag , %d",line,42+y); 
-        MPI_Recv(Matrix[0], elements, MPI_DOUBLE, MPI_ANY_SOURCE, 42 + y, MPI_COMM_WORLD, &status);
+        //MPI_Recv(Matrix[0], elements, MPI_DOUBLE, MPI_ANY_SOURCE, 42 + y, MPI_COMM_WORLD, &status);
+        MPI_Recv(result_vec, elements, MPI_DOUBLE, MPI_ANY_SOURCE, 42 + y, MPI_COMM_WORLD, &status);
         //printf("Got Line");
       }
       else
@@ -824,6 +839,7 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
         /* if the line belongs to this process, send it to rank 0
          * (line - from + 1) is used to calculate the correct local address */
         //printf("Send Line %d, from %d, with tag %d", line,rank,42+y);
+        //printf("Rank %d Send Line %d Local %d from %d to %d \n", rank, line, (line-from+1),from,to);
         MPI_Send(Matrix[line - from + 1], elements, MPI_DOUBLE, 0, 42 + y, MPI_COMM_WORLD);
         //printf("Line Send");
       }
@@ -831,6 +847,7 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
 
     if (rank == 0)
     {
+      printf("L %d:",line);
       for (x = 0; x < 9; x++)
       {
         int col = x * (options->interlines + 1);
@@ -843,7 +860,8 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
         else
         {
           /* this line belongs to another rank and was received above */
-          printf("%7.4f", Matrix[0][col]);
+          //printf("%7.4f", Matrix[0][col]);
+          printf("%7.4f", result_vec[col]);
         }
       }
 
