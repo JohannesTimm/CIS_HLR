@@ -55,7 +55,8 @@ struct calculation_results
 {
 	uint64_t  m;
 	uint64_t  stat_iteration; /* number of current iteration                    */
-	double    stat_precision; /* actual precision of all slaves in iteration    */
+	double    stat_precision_local; /* actual precision of all slaves in iteration    */
+	double    stat_precision;
 };
 
 /* ************************************************************************ */
@@ -91,7 +92,7 @@ initVariables (struct calculation_arguments* arguments, struct calculation_resul
 	//N = (options->interlines * 8) + 9 - 1;
 	rest = (N + 1 -2) % size;
 	
-	printf("Global Matrix Size is %d the rest is %d \n",(int)arguments->N + 1,rest); 
+	//printf("Global Matrix Size is %d the rest is %d \n",(int)arguments->N + 1,rest); 
 	//printf("Global Matrix Size is %d the rest is %d \n",N + 1,rest); 	
 	if(rank < rest)
 	{
@@ -106,7 +107,7 @@ initVariables (struct calculation_arguments* arguments, struct calculation_resul
 		arguments -> from = rank * ((N - 1)/size) + rest + 1;
 		arguments -> to = arguments -> from + (N-1)/size - 1;
 	}
-	printf("Process %d has local Matrix size of %d and is responsible for Global lines %d to %d \n",rank, arguments->N_local,arguments->from,arguments->to); 
+	//printf("Process %d has local Matrix size of %d and is responsible for Global lines %d to %d \n",rank, arguments->N_local,arguments->from,arguments->to); 
 	arguments->num_matrices = (options->method == METH_JACOBI) ? 2 : 1;
 	arguments->h = 1.0 / arguments->N;
 
@@ -469,7 +470,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		m2 = i;
 		
 		results->stat_iteration++;
-		results->stat_precision = maxresiduum;
+		results->stat_precision_local = maxresiduum;
+		results->stat_precision = globalmaxresiduum;
 
 		/* check for stopping calculation, depending on termination method */
 		if (options->termination == TERM_PREC)
@@ -477,6 +479,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			if (globalmaxresiduum < options->term_precision)
 			{
 				term_iteration = 0;
+				
 			}
 		}
 		else if (options->termination == TERM_ITER)
@@ -789,7 +792,7 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
   if (rank + 1 == size)
     to++;
 	
-  printf("Rank %d, responsible for lines from %d to %d \n", rank, from, to);	
+  //printf("Rank %d, responsible for lines from %d to %d \n", rank, from, to);	
   
   if (rank == 0)
     printf("Matrix:\n");
@@ -805,13 +808,13 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
       {
         /* use the tag to receive the lines in the correct order
          * the line is stored in Matrix[0], because we do not need it anymore */
-        printf("Recv Line, %d , with tag , %d",line,42+y); 
+        //printf("Recv Line, %d , with tag , %d",line,42+y); 
         MPI_Recv(Matrix[0], elements, MPI_DOUBLE, MPI_ANY_SOURCE, 42 + y, MPI_COMM_WORLD, &status);
         //printf("Got Line");
       }
       else
       {
-      printf("Rank %d:",rank);
+      //printf("Rank %d:",rank);
       }
     }
     else
@@ -877,7 +880,7 @@ main (int argc, char** argv)
 
 	allocateMatrices(&arguments);        /*  get and initialize variables and matrices  */
 	initMatrices(&arguments, &options);            /* ******************************************* */
-
+	MPI_Barrier(MPI_COMM_WORLD); //all should start at nearly the same time
 	gettimeofday(&start_time, NULL);                   /*  start timer         */
 	if (options.method == METH_JACOBI)
 	{
@@ -891,7 +894,11 @@ main (int argc, char** argv)
 	}
 	gettimeofday(&comp_time, NULL);                   /*  stop timer          */
 	MPI_Barrier(MPI_COMM_WORLD);
-	displayStatistics(&arguments, &results, &options);
+	if (arguments.rank==0) //just have the statistics once and not for every process
+	{
+		displayStatistics(&arguments, &results, &options);
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
 	DisplayMatrix(&arguments, &results, &options);
 	//DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options, int rank, int size, int from, int to)
 	MPI_Barrier(MPI_COMM_WORLD);
