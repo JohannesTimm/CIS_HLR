@@ -34,6 +34,8 @@ struct calculation_arguments
 {
 	uint64_t  N;              /* number of spaces between lines (lines=N+1)     */
 	uint64_t  num_matrices;   /* number of matrices                             */
+	//int  N;              /* number of spaces between lines (lines=N+1)     */
+	//int  num_matrices;   /* number of matrices                             */
 	double    h;              /* length of a space between two lines            */
 	double    ***Matrix;      /* index matrix used for addressing M             */
 	double    *M;             /* two matrices with real values                  */
@@ -42,6 +44,11 @@ struct calculation_arguments
 	int size;
 	int from;
 	int to;
+	//uint64_t N_local;
+	//uint64_t rank;
+	//uint64_t size;
+	//uint64_t from;
+	//uint64_t to;
 };
 
 struct calculation_results
@@ -67,20 +74,25 @@ static
 void
 initVariables (struct calculation_arguments* arguments, struct calculation_results* results, struct options const* options)
 {
-	int rest;
-	uint64_t const N = arguments->N;
+	int rest;	
+	//uint64_t rest;
+	//uint64_t const N = arguments->N;
 	
 	MPI_Comm_rank (MPI_COMM_WORLD, &arguments -> rank);	
 	MPI_Comm_size (MPI_COMM_WORLD, &arguments -> size);
 	
 	int const size = arguments -> size;
 	int const rank = arguments -> rank;	
+	//uint64_t const size = arguments -> size;
+	//uint64_t const rank = arguments -> rank;	
 	
 	arguments->N = (options->interlines * 8) + 9 - 1;
+	uint64_t const N = arguments->N;
+	//N = (options->interlines * 8) + 9 - 1;
 	rest = (N + 1 -2) % size;
 	
-	printf("Global Matrix Size is %d the rest is %d \n",(int)arguments->N,rest); 
-		
+	printf("Global Matrix Size is %d the rest is %d \n",(int)arguments->N + 1,rest); 
+	//printf("Global Matrix Size is %d the rest is %d \n",N + 1,rest); 	
 	if(rank < rest)
 	{
 		arguments -> N_local = (N + 1 -2) / size + 1;
@@ -126,13 +138,13 @@ freeMatrices (struct calculation_arguments* arguments)
 /* ************************************************************************ */
 static
 void*
-allocateMemory (size_t size)
+allocateMemory (size_t sizet)
 {
 	void *p;
 
-	if ((p = malloc(size)) == NULL)
+	if ((p = malloc(sizet)) == NULL)
 	{
-		printf("Speicherprobleme! (%" PRIu64 " Bytes)\n", size);
+		printf("Speicherprobleme! (%" PRIu64 " Bytes)\n", sizet);
 		/* exit program */
 		exit(1);
 	}
