@@ -418,8 +418,10 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		//Communicate with the Other Processes to exchange Halo lines
 		if (rank>0)
 		{
-			tag_send=rank+10;
-			tag_recv=rank-1+20;
+			//tag_send=rank+10;
+			//tag_recv=rank-1+20;
+			tag_send=rank;
+			tag_recv=rank-1;
 			error_code=MPI_Sendrecv(Matrix_Out[1],N,MPI_DOUBLE, rank -1, tag_send,
 						Matrix_Out[0],N,MPI_DOUBLE, rank -1, tag_recv,
 						MPI_COMM_WORLD,&status);
@@ -430,8 +432,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		}
 		if (rank<size -1)
 		{
-			tag_send=rank+20;
-			tag_recv=rank-1+10;
+			tag_send=rank;
+			tag_recv=rank+1;
 			error_code=MPI_Sendrecv(Matrix_Out[N_local-1],N,MPI_DOUBLE, rank +1, tag_send,
 						Matrix_Out[N_local],N,MPI_DOUBLE, rank +1, tag_recv,
 						MPI_COMM_WORLD,&status);
