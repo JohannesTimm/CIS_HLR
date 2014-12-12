@@ -78,6 +78,8 @@ initVariables (struct calculation_arguments* arguments, struct calculation_resul
 	
 	arguments->N = (options->interlines * 8) + 9 - 1;
 	rest = (N + 1 -2) % size;
+	
+	printf("Global Matrix Size is %d the rest is %d \n",(int)arguments->N,rest); 
 		
 	if(rank < rest)
 	{
@@ -91,7 +93,7 @@ initVariables (struct calculation_arguments* arguments, struct calculation_resul
 		arguments -> from = rank * ((N - 1)/size) + rest + 1;
 		arguments -> to = arguments -> from + (N-1)/size - 1;
 	}
-	
+	printf("Process %d has local Matrix size of %d and is responsible for Global lines %d to %d \n",rank, arguments->N_local,arguments->from,arguments->to); 
 	arguments->num_matrices = (options->method == METH_JACOBI) ? 2 : 1;
 	arguments->h = 1.0 / arguments->N;
 
@@ -770,7 +772,9 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
   /* last line belongs to rank size - 1 */
   if (rank + 1 == size)
     to++;
-
+	
+  printf("Rank %d, responsible for lines from %d to %d \n", rank, from, to);	
+  
   if (rank == 0)
     printf("Matrix:\n");
 
@@ -785,7 +789,13 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
       {
         /* use the tag to receive the lines in the correct order
          * the line is stored in Matrix[0], because we do not need it anymore */
+        printf("Recv Line, %d , with tag , %d",line,42+y); 
         MPI_Recv(Matrix[0], elements, MPI_DOUBLE, MPI_ANY_SOURCE, 42 + y, MPI_COMM_WORLD, &status);
+        printf("Got Line");
+      }
+      else
+      {
+      printf("Rank %d:",rank);
       }
     }
     else
@@ -794,7 +804,9 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
       {
         /* if the line belongs to this process, send it to rank 0
          * (line - from + 1) is used to calculate the correct local address */
+        printf("Send Line %d, from %d, with tag %d", line,rank,42+y);
         MPI_Send(Matrix[line - from + 1], elements, MPI_DOUBLE, 0, 42 + y, MPI_COMM_WORLD);
+        printf("Line Send");
       }
     }
 
@@ -862,11 +874,11 @@ main (int argc, char** argv)
 		calculate(&arguments, &results, &options);     
 	}
 	gettimeofday(&comp_time, NULL);                   /*  stop timer          */
-
+	MPI_Barrier(MPI_COMM_WORLD);
 	displayStatistics(&arguments, &results, &options);
 	DisplayMatrix(&arguments, &results, &options);
 	//DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options, int rank, int size, int from, int to)
-
+	MPI_Barrier(MPI_COMM_WORLD);
 	freeMatrices(&arguments);                                       /*  free memory     */
 	MPI_Finalize();
 	return 0;
