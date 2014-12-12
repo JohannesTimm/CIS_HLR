@@ -55,7 +55,8 @@ struct calculation_results
 {
 	uint64_t  m;
 	uint64_t  stat_iteration; /* number of current iteration                    */
-	double    stat_precision; /* actual precision of all slaves in iteration    */
+	double    stat_precision_local; /* actual precision of all slaves in iteration    */
+	double    stat_precision;
 };
 
 /* ************************************************************************ */
@@ -466,7 +467,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		m2 = i;
 		
 		results->stat_iteration++;
-		results->stat_precision = maxresiduum;
+		results->stat_precision_local = maxresiduum;
+		results->stat_precision = globalmaxresiduum;
 
 		/* check for stopping calculation, depending on termination method */
 		if (options->termination == TERM_PREC)
@@ -474,6 +476,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			if (globalmaxresiduum < options->term_precision)
 			{
 				term_iteration = 0;
+				
 			}
 		}
 		else if (options->termination == TERM_ITER)
@@ -873,7 +876,7 @@ main (int argc, char** argv)
 
 	allocateMatrices(&arguments);        /*  get and initialize variables and matrices  */
 	initMatrices(&arguments, &options);            /* ******************************************* */
-
+	MPI_Barrier(MPI_COMM_WORLD); //all should start at nearly the same time
 	gettimeofday(&start_time, NULL);                   /*  start timer         */
 	if (options.method == METH_JACOBI)
 	{
@@ -887,7 +890,11 @@ main (int argc, char** argv)
 	}
 	gettimeofday(&comp_time, NULL);                   /*  stop timer          */
 	MPI_Barrier(MPI_COMM_WORLD);
-	displayStatistics(&arguments, &results, &options);
+	if (arguments.rank==0) //just have the statistics once and not for every process
+	{
+		displayStatistics(&arguments, &results, &options);
+	}
+	MPI_Barrier(MPI_COMM_WORLD);
 	DisplayMatrix(&arguments, &results, &options);
 	//DisplayMatrix (struct calculation_arguments* arguments, struct calculation_results* results, struct options* options, int rank, int size, int from, int to)
 	MPI_Barrier(MPI_COMM_WORLD);
