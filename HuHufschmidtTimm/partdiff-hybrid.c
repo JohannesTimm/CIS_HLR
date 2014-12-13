@@ -438,6 +438,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			i_start = 1 + my_thread * width;
 			i_end = i_start + width;
 		}
+		
 		double* fpisin_i;
 		fpisin_i = (double*)malloc(N * sizeof(double));
 		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) 
@@ -947,7 +948,7 @@ main (int argc, char** argv)
 
 	int thread_level;
 	/* mpi starts*/
-	rc= MPI_Init_thread(&argc,&argv,thread_level_required,&thead_level);
+	rc= MPI_Init_thread(&argc,&argv,thread_level_required,&thread_level);
 
 	if (rc != MPI_SUCCESS) 
 	{
@@ -955,7 +956,7 @@ main (int argc, char** argv)
 		MPI_Abort(MPI_COMM_WORLD, rc);
     	}
     	MPI_Query_thread(&thread_level);
-	if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED )
+	if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED ))
 		{
 			printf("Using Threads");
 		}
@@ -964,7 +965,7 @@ main (int argc, char** argv)
 			printf("Error : Thread Level provided by Libary is too low. Programm will not work\n");
 			MPI_Abort(MPI_COMM_WORLD, rc);
     	}
-	if (thread_level_provided<MPI_THREAD_FUNNELD
+	
 	/* get parameters */
 	AskParams(&options, argc, argv);              /* ************************* */
 
