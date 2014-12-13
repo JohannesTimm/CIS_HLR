@@ -2,12 +2,13 @@
 CC = mpicc
 
 # Compiler flags, paths and libraries
-CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb -openmp
+CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb -fopenmp
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
 
-OBJS = partdiff-mpi.o askparams.o partdiff-hybrid.o
+OBJSMPI = partdiff-mpi.o askparams.o
 
+OBJHYBRID = askparams.o partdiff-hybrid.o
 # Rule to create *.o from *.c
 .c.o:
 	$(CC) -c $(CFLAGS) $*.c
@@ -16,9 +17,9 @@ OBJS = partdiff-mpi.o askparams.o partdiff-hybrid.o
 all: partdiff-mpi partdiff-hybrid
 
 partdiff-mpi: $(OBJS) Makefile
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(LFLAGS) -o $@ $(OBJSMPI) $(LIBS)
 partdiff-hybrid: $(OBJS) Makefile
-	$(CC) $(LFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CC) $(LFLAGS) -o $@ $(OBJSHYBRID) $(LIBS)
 clean:
 	$(RM) *.o *~
 
