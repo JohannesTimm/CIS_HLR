@@ -448,7 +448,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		
 			if (options->inf_func == FUNC_FPISIN)
 			{
-				#pragma omp for firstprivate(fpisin,pih,i_start,i_end)
+				#pragma omp for firstprivate(fpisin,pih) //,i_start,i_end)
 				for (i = i_start; i < i_end; i++)			
 				{ 	
 					fpisin_i[i] = 0.0;
@@ -456,7 +456,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 				}
 			}
 			/* over all rows */
-			#pragma omp for private(i,j,star,residuum) firstprivate(fpisin,pih,i_start,i_end) reduction(+:maxresiduum)
+			#pragma omp for private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum)
 			for (i = i_start; i < i_end; ++i)
 			//for (i = 1; i <= N_local; ++i)
 			{
