@@ -418,31 +418,33 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	{
 		double** Matrix_Out = arguments->Matrix[m1];
 		double** Matrix_In  = arguments->Matrix[m2];
-
-		maxresiduum = 0;
-		int i_start, i_end;
-		int num_threads;
-		int my_thread;
-		int width;
-		num_threads = omp_get_num_threads();
-		my_thread = omp_get_thread_num();
-		width = (int) (N_local-1) / num_threads;
-		if(my_thread == num_threads-1)
-		
-		{
-			i_start = 1 + my_thread * width;
-			i_end = N_local;
-		}
-		else
-		{
-			i_start = 1 + my_thread * width;
-			i_end = i_start + width;
-		}
-		
 		double* fpisin_i;
 		fpisin_i = (double*)malloc(N * sizeof(double));
-		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) 
+		maxresiduum = 0;
+		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) private(my_thread,i_start,i_end,thread_is_main)
 		{
+			
+			int i_start, i_end;
+			int num_threads;
+			int my_thread;
+			int width;
+			num_threads = omp_get_num_threads();
+			my_thread = omp_get_thread_num();
+			width = (int) (N_local-1) / num_threads;
+			MPI_Is_thread_main(&thread_is_main);
+			if(my_thread == num_threads-1)
+		
+			{
+				i_start = 1 + my_thread * width;
+				i_end = N_local;
+			}
+			else
+			{
+				i_start = 1 + my_thread * width;
+				i_end = i_start + width;
+			}
+		
+		
 			if (options->inf_func == FUNC_FPISIN)
 			{
 				#pragma omp for firstprivate(fpisin,pih,i_start,i_end)
@@ -958,7 +960,7 @@ main (int argc, char** argv)
     	MPI_Query_thread(&thread_level);
 	if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED ))
 		{
-			printf("Using Threads");
+			printf("Using Threads\n");
 		}
 	else
 		{
