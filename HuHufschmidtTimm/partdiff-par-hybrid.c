@@ -27,8 +27,8 @@
 #include <malloc.h>
 #include <sys/time.h>
 #include <mpi.h>
-
-#include "partdiff-mpi.h"
+#include <omp.h>
+#include "partdiff-par-hybrid.h"
 
 struct calculation_arguments
 {
@@ -389,6 +389,10 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int term_iteration = options->term_iteration;
 	int error_code;
 	int tag_send, tag_recv;
+	int thread_level, thread_is_main;
+	MPI_Query_thread(&thread_level);
+	MPI_Is_thread_main(&thread_is_main);
+
 	
 	//printf("Rank %d, N_local %d, Interval %d, From %d, To %d \n",rank,N_local,(to-from),from, to);
 
@@ -414,100 +418,152 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	{
 		double** Matrix_Out = arguments->Matrix[m1];
 		double** Matrix_In  = arguments->Matrix[m2];
-
+		double* fpisin_i;
+		fpisin_i = (double*)malloc(N * sizeof(double));
 		maxresiduum = 0;
-
-		/* over all rows */
-		for (i = 1; i <= N_local; ++i)
+		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) 
+		//private(my_thread,i_start,i_end,thread_is_main)
 		{
-			double fpisin_i = 0.0;
-
+			
+			int i_start, i_end;
+			int num_threads;
+			int my_thread;
+			int width;
+			num_threads = omp_get_num_threads();
+			my_thread = omp_get_thread_num();
+			width = (int) (N_local-1) / num_threads;
+			MPI_Is_thread_main(&thread_is_main);
+			if(my_thread == num_threads-1)
+		
+			{
+				i_start = 1 + my_thread * width;
+				i_end = N_local;
+			}
+			else
+			{
+				i_start = 1 + my_thread * width;
+				i_end = i_start + width;
+			}
+		
+		
 			if (options->inf_func == FUNC_FPISIN)
 			{
-				fpisin_i = fpisin * sin(pih * ((double)i + from - 1));
-			}
-
-			/* over all columns */
-			for (j = 1; j < N; ++j)
-			{
-				star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
-
-				if (options->inf_func == FUNC_FPISIN)
-				{
-					star += fpisin_i * sin(pih * (double)j);
+				#pragma omp for firstprivate(fpisin,pih) //,i_start,i_end)
+				for (i = i_start; i < i_end; i++)			
+				{ 	
+					fpisin_i[i] = 0.0;
+					fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
 				}
+			}
+			/* over all rows */
+			#pragma omp for private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum)
+			for (i = i_start; i < i_end; ++i)
+			//for (i = 1; i <= N_local; ++i)
+			{
+				//double fpisin_i = 0.0;
+	
+				//if (options->inf_func == FUNC_FPISIN)
+				//{
+				//	fpisin_i = fpisin * sin(pih * ((double)i + from - 1));
+				//}
 
-				if (options->termination == TERM_PREC || term_iteration == 1)
+				/* over all columns */
+				for (j = 1; j < N; ++j)
 				{
-					residuum = Matrix_In[i][j] - star;
-					residuum = (residuum < 0) ? -residuum : residuum;
-					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+					star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);	
+	
+					//if (options->inf_func == FUNC_FPISIN)
+					//{
+					//	star += fpisin_i * sin(pih * (double)j);
+					//}
+					if (options->inf_func == FUNC_FPISIN)
+					{
+						star += fpisin_i[i] * sin(pih * (double)j);
+					}
+	
+					if (options->termination == TERM_PREC || term_iteration == 1)
+					{
+						residuum = Matrix_In[i][j] - star;
+						residuum = (residuum < 0) ? -residuum : residuum;
+						maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+					}
+	
+					Matrix_Out[i][j] = star;
 				}
-
-				Matrix_Out[i][j] = star;
 			}
-		}
-
-		//Communicate with the Other Processes to exchange Halo lines
-		if (rank>0)
-		{
-			//tag_send=rank+10;
-			//tag_recv=rank-1+20;
-			tag_send=rank;
-			tag_recv=rank-1;
-			error_code=MPI_Sendrecv(Matrix_Out[1],N + 1,MPI_DOUBLE, rank -1, tag_send,
-						Matrix_Out[0],N + 1,MPI_DOUBLE, rank -1, tag_recv,
-						MPI_COMM_WORLD,&status);
-			if (error_code!=MPI_SUCCESS)
+			#pragma omp barrier
+			#pragma omp master
+			if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED && thread_is_main))
 			{
-				printf("Error in SendRecv");
-			}
-		}
-		if (rank<size -1)
-		{
-			tag_send=rank;
-			tag_recv=rank+1;
-			/*error_code=MPI_Sendrecv(Matrix_Out[N_local + 2 - 2],N + 1,MPI_DOUBLE, rank +1, tag_send,
-						Matrix_Out[N_local + 2 - 1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
-						MPI_COMM_WORLD,&status);
-			*/			
-			error_code=MPI_Sendrecv(Matrix_Out[N_local],N + 1,MPI_DOUBLE, rank +1, tag_send,
-						Matrix_Out[N_local+1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
-						MPI_COMM_WORLD,&status);			
-			if (error_code!=MPI_SUCCESS)
-			{
-				printf("Error in SendRecv");
-			}
-		}
-		//Find the global maximum of the residuum (later decide if this is low enough)
-		//Allreduce has no error handling
-		MPI_Allreduce(&maxresiduum,&globalmaxresiduum,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-
-		/* exchange m1 and m2 */
-		i = m1;
-		m1 = m2;
-		m2 = i;
+				//Communicate with the Other Processes to exchange Halo lines
+				if (rank>0)
+				{
+					//tag_send=rank+10;
+					//tag_recv=rank-1+20;
+					tag_send=rank;
+					tag_recv=rank-1;
+					error_code=MPI_Sendrecv(Matrix_Out[1],N + 1,MPI_DOUBLE, rank -1, tag_send,
+								Matrix_Out[0],N + 1,MPI_DOUBLE, rank -1, tag_recv,
+								MPI_COMM_WORLD,&status);
+					if (error_code!=MPI_SUCCESS)
+					{
+						printf("Error in SendRecv");
+					}
+				}
+				if (rank<size -1)
+					{
+					tag_send=rank;
+					tag_recv=rank+1;
+					/*error_code=MPI_Sendrecv(Matrix_Out[N_local + 2 - 2],N + 1,MPI_DOUBLE, rank +1, tag_send,
+								Matrix_Out[N_local + 2 - 1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
+								MPI_COMM_WORLD,&status);
+					*/			
+					error_code=MPI_Sendrecv(Matrix_Out[N_local],N + 1,MPI_DOUBLE, rank +1, tag_send,
+							Matrix_Out[N_local+1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
+								MPI_COMM_WORLD,&status);			
+					if (error_code!=MPI_SUCCESS)
+					{
+						printf("Error in SendRecv");
+					}
+				}
+				//Find the global maximum of the residuum (later decide if this is low enough)
+				//Allreduce has no error handling
+				MPI_Allreduce(&maxresiduum,&globalmaxresiduum,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+			
 		
-		results->stat_iteration++;
-		results->stat_precision_local = maxresiduum;
-		results->stat_precision = globalmaxresiduum;
-		
-		MPI_Barrier(MPI_COMM_WORLD);
-		
-		/* check for stopping calculation, depending on termination method */
-		if (options->termination == TERM_PREC)
-		{
-			if (globalmaxresiduum < options->term_precision)
-			{
-				term_iteration = 0;
+				/* exchange m1 and m2 */
+				i = m1;
+				m1 = m2;
+				m2 = i;
+			
+				results->stat_iteration++;
+				results->stat_precision_local = maxresiduum;
+				results->stat_precision = globalmaxresiduum;
 				
+				MPI_Barrier(MPI_COMM_WORLD);
 			}
-		}
-		else if (options->termination == TERM_ITER)
-		{
-			term_iteration--;
+			else
+			{
+				printf("Error: Master Thread of Process %d cannot communicate. Why?",rank);
+			}
+			#pragma omp barrier
+	
+			/* check for stopping calculation, depending on termination method */
+			if (options->termination == TERM_PREC)
+			{
+				if (globalmaxresiduum < options->term_precision)
+				{
+				term_iteration = 0;
+					
+				}
+			}
+			else if (options->termination == TERM_ITER)
+			{
+				term_iteration--;
+			}
 		}
 	}
+		
 
 	results->m = m2;
 }
@@ -891,15 +947,28 @@ main (int argc, char** argv)
 	struct calculation_arguments arguments;
 	struct calculation_results results;
 	int rc;
-	
+	int thread_level_required=MPI_THREAD_MULTIPLE;
+
+	int thread_level;
 	/* mpi starts*/
-	rc= MPI_Init(&argc, &argv);
+	rc= MPI_Init_thread(&argc,&argv,thread_level_required,&thread_level);
+
 	if (rc != MPI_SUCCESS) 
 	{
 		printf ("Error starting MPI program. Terminating.\n");    	
 		MPI_Abort(MPI_COMM_WORLD, rc);
-    }
-
+    	}
+    	MPI_Query_thread(&thread_level);
+	if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED ))
+		{
+			printf("Using Threads\n");
+		}
+	else
+		{
+			printf("Error : Thread Level provided by Libary is too low. Programm will not work\n");
+			MPI_Abort(MPI_COMM_WORLD, rc);
+    	}
+	
 	/* get parameters */
 	AskParams(&options, argc, argv);              /* ************************* */
 

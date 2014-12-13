@@ -6,23 +6,23 @@ CFLAGS = -std=c99 -pedantic -Wall -Wextra -O2 -ggdb -fopenmp
 LFLAGS = $(CFLAGS)
 LIBS   = -lm
 
-OBJSMPI = partdiff-mpi.o askparams.o
+OBJSMPI = partdiff-par.o askparams.o
 
-OBJHYBRID = partdiff-hybrid.o askparams.o
+OBJHYBRID = partdiff-par-hybrid.o askparams.o
 # Rule to create *.o from *.c
 .c.o:
 	$(CC) -c $(CFLAGS) $*.c
 
 # Targets ...
-all: partdiff-mpi partdiff-hybrid
+all: partdiff-par partdiff-par-hybrid
 
-partdiff-mpi: $(OBJSMPI) Makefile
+partdiff-par: $(OBJSMPI) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJSMPI) $(LIBS)
-partdiff-hybrid: $(OBJHYBRID) Makefile
+partdiff-par-hybrid: $(OBJHYBRID) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJHYBRID) $(LIBS)
 clean:
 	$(RM) *.o *~
 
-partdiff-mpi.o: partdiff-mpi.c Makefile
-partdiff-hybrid.o: partdiff-hybrid.c Makefile
+partdiff-par.o: partdiff-par.c Makefile
+partdiff-par-hybrid.o: partdiff-par-hybrid.c Makefile
 askparams.o: askparams.c Makefile
