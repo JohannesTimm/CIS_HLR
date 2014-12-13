@@ -80,7 +80,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <mpi.h>
-#include "partdiff-mpi.h"
+#include "partdiff-par.h"
 
 static
 void
