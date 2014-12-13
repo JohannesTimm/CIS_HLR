@@ -32,10 +32,10 @@
 
 struct calculation_arguments
 {
-	uint64_t  N;              /* number of spaces between lines (lines=N+1)     */
-	uint64_t  num_matrices;   /* number of matrices                             */
-	//int  N;              /* number of spaces between lines (lines=N+1)     */
-	//int  num_matrices;   /* number of matrices                             */
+	//uint64_t  N;              /* number of spaces between lines (lines=N+1)     */
+	//uint64_t  num_matrices;   /* number of matrices                             */
+	int  N;              /* number of spaces between lines (lines=N+1)     */
+	int  num_matrices;   /* number of matrices                             */
 	double    h;              /* length of a space between two lines            */
 	double    ***Matrix;      /* index matrix used for addressing M             */
 	double    *M;             /* two matrices with real values                  */
@@ -88,7 +88,8 @@ initVariables (struct calculation_arguments* arguments, struct calculation_resul
 	//uint64_t const rank = arguments -> rank;	
 	
 	arguments->N = (options->interlines * 8) + 9 - 1;
-	uint64_t const N = arguments->N;
+	//uint64_t const N = arguments->N;
+	int const N = arguments->N;
 	//N = (options->interlines * 8) + 9 - 1;
 	rest = (N + 1 -2) % size;
 	
@@ -123,8 +124,8 @@ static
 void
 freeMatrices (struct calculation_arguments* arguments)
 {
-	uint64_t i;
-
+	//uint64_t i;
+	int i;
 	for (i = 0; i < arguments->num_matrices; i++)
 	{
 		free(arguments->Matrix[i]);
@@ -161,10 +162,14 @@ static
 void
 allocateMatrices (struct calculation_arguments* arguments)
 {
-	uint64_t i, j;
+	//uint64_t i, j;
 
-	uint64_t const N = arguments->N;
-	uint64_t const N_local = arguments -> N_local;
+	//uint64_t const N = arguments->N;
+	//uint64_t const N_local = arguments -> N_local;
+	int i, j;
+
+	int const N = arguments->N;
+	int const N_local = arguments -> N_local;
 
 	arguments->M = allocateMemory(arguments->num_matrices * (N_local + 2) * (N + 1) * sizeof(double));
 	arguments->Matrix = allocateMemory(arguments->num_matrices * sizeof(double**));
@@ -187,10 +192,14 @@ static
 void
 initMatrices (struct calculation_arguments* arguments, struct options const* options)
 {
-	uint64_t g, i, j;                                /*  local variables for loops   */
+	//uint64_t g, i, j;                                /*  local variables for loops   */
 
-	uint64_t const N = arguments -> N;
-	uint64_t const N_local =arguments -> N_local;
+	//uint64_t const N = arguments -> N;
+	//uint64_t const N_local =arguments -> N_local;
+	int g, i, j;                                /*  local variables for loops   */
+
+	int const N = arguments -> N;
+	int const N_local =arguments -> N_local;
 	double const h = arguments->h;
 	double*** Matrix = arguments->Matrix;
 	int from = arguments -> from;
@@ -237,12 +246,12 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 					//Matrix[g][N_local][i] = h * i;
 				}
 			}
-			for (i = 0; i <= N; ++i)
-			{
-				Matrix[g][N_local + 1][i] = h * i;
-				//Matrix[g][N_local][i] = h * i;
-				Matrix[g][0][N] = 0.0;
-			}
+			//for (i = 0; i <= N; ++i)
+			//{
+				//Matrix[g][N_local + 1][i] = h * i;
+				////Matrix[g][N_local][i] = h * i;
+				//Matrix[g][0][N] = 0.0;
+			//}
 		}
 	}
 }
@@ -415,7 +424,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 
 			if (options->inf_func == FUNC_FPISIN)
 			{
-				fpisin_i = fpisin * sin(pih * (double)i);
+				fpisin_i = fpisin * sin(pih * ((double)i + from - 1));
 			}
 
 			/* over all columns */
