@@ -390,7 +390,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int error_code;
 	int tag_send, tag_recv;
 	
-	printf("Rank %d, N_local %d, Interval %d, From %d, To %d \n",rank,N_local,(to-from),from, to);
+	//printf("Rank %d, N_local %d, Interval %d, From %d, To %d \n",rank,N_local,(to-from),from, to);
 
 	/* initialize m1 and m2 depending on algorithm */
 	if (options->method == METH_JACOBI)
@@ -856,7 +856,7 @@ DisplayMatrix (struct calculation_arguments* arguments, struct calculation_resul
 
     if (rank == 0)
     {
-      printf("L %d:",line);
+      //printf("L %d:",line);
       for (x = 0; x < 9; x++)
       {
         int col = x * (options->interlines + 1);
