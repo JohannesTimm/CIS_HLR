@@ -1,0 +1,7 @@
+salloc --nodelist=west[1-3]
+
+mpirun -n 12 -npernode 4 ./partdiff-par 1 2 512 2 2 2048
+111.65s/110.66s/110.46s  Mittel: 110.92s
+
+mpirun -n 24 -npernode 8 ./partdiff-par 1 2 512 2 2 2048
+57.97s/57.49s/58.38s     Mittel:57.95s
