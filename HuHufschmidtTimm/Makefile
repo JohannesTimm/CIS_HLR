@@ -16,9 +16,9 @@ OBJHYBRID = partdiff-hybrid.o askparams.o
 # Targets ...
 all: partdiff-mpi partdiff-hybrid
 
-partdiff-mpi: $(OBJS) Makefile
+partdiff-mpi: $(OBJSMPI) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJSMPI) $(LIBS)
-partdiff-hybrid: $(OBJS) Makefile
+partdiff-hybrid: $(OBJHYBRID) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJHYBRID) $(LIBS)
 clean:
 	$(RM) *.o *~

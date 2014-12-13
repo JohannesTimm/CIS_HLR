@@ -421,7 +421,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		double* fpisin_i;
 		fpisin_i = (double*)malloc(N * sizeof(double));
 		maxresiduum = 0;
-		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) private(my_thread,i_start,i_end,thread_is_main)
+		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) 
+		//private(my_thread,i_start,i_end,thread_is_main)
 		{
 			
 			int i_start, i_end;
