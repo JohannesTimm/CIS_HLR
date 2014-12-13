@@ -8,7 +8,7 @@ LIBS   = -lm
 
 OBJSMPI = partdiff-mpi.o askparams.o
 
-OBJHYBRID = askparams.o partdiff-hybrid.o
+OBJHYBRID = partdiff-hybrid.o askparams.o
 # Rule to create *.o from *.c
 .c.o:
 	$(CC) -c $(CFLAGS) $*.c
