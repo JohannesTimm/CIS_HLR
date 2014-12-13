@@ -19,7 +19,7 @@ all: partdiff-mpi partdiff-hybrid
 partdiff-mpi: $(OBJS) Makefile
 	$(CC) $(LFLAGS) -o $@ $(OBJSMPI) $(LIBS)
 partdiff-hybrid: $(OBJS) Makefile
-	$(CC) $(LFLAGS) -o $@ $(OBJSHYBRID) $(LIBS)
+	$(CC) $(LFLAGS) -o $@ $(OBJHYBRID) $(LIBS)
 clean:
 	$(RM) *.o *~
 
