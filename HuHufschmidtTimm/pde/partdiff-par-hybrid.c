@@ -368,6 +368,7 @@ void
 calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calculation_results *results, struct options const* options)
 {
 	int i, j;                                   /* local variables for loops  */
+	int k;
 	int m1, m2;                                 /* used as indices for old and new matrices       */
 	double star;                                /* four times center value minus 4 neigh.b values */
 	double residuum;                            /* residuum of current iteration                  */
@@ -437,8 +438,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			
 			num_threads = omp_get_num_threads();
 			my_thread = omp_get_thread_num();
-			width = (int) (N_local) / num_threads;
-			rest = (N_local) % num_threads;
+// 			width = (int) (N_local) / num_threads;
+// 			rest = (N_local) % num_threads;
 			MPI_Is_thread_main(&thread_is_main);
 			//if(my_thread == num_threads-1)
 		
@@ -451,16 +452,16 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			//	i_start = 1 + my_thread * width;
 			//	i_end = i_start + width;
 			//}
-			if(my_thread < rest)
-				{
-				i_start=my_thread*((N_local)/num_threads +1)+1;
-				i_end=i_start+(N_local)/size;
-				}
-			else
-				{
-				i_start=my_thread*((N_local)/num_threads) +rest+1;
-				i_end=i_start+(N_local)/size-1;
-				}	
+// 			if(my_thread < rest)
+// 				{
+// 				i_start=my_thread*((N_local)/num_threads +1)+1;
+// 				i_end=i_start+(N_local)/size;
+// 				}
+// 			else
+// 				{
+// 				i_start=my_thread*((N_local)/num_threads) +rest+1;
+// 				i_end=i_start+(N_local)/size-1;
+// 				}	
 // 			if (options->inf_func == FUNC_FPISIN)
 // 			{
 // 				#pragma omp for firstprivate(fpisin,pih) //,i_start,i_end)
@@ -470,7 +471,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 // 					fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
 // 				}
 // 			}
-			printf("Here is Thread %d of %d from Rank %d Master %d istart %d iend %d \n",my_thread,num_threads,rank,thread_is_main,i_start,i_end);
+			//printf("Here is Thread %d of %d from Rank %d Master %d istart %d iend %d \n",my_thread,num_threads,rank,thread_is_main,i_start,i_end);
 			/* over all rows */
 			double fpisin_i = 0.0;
 // 			#pragma omp for private(j,star,residuum) firstprivate(pih) reduction(max:maxresiduum) collapse(2)
@@ -478,6 +479,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			for (i = 1; i <= N_local; ++i)
 			//for (i = i_start; i <= i_end; ++i)
 			{	
+				//printf("Thread %d of %d from Process %d Calculating Row %d \n",my_thread,num_threads,rank,i);
 				if (options->inf_func == FUNC_FPISIN)
 				{
 					fpisin_i = fpisin * sin(pih * ((double)i + from - 1));
@@ -509,76 +511,80 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			}
 			#pragma omp barrier
 			#pragma omp master
-			MPI_Query_thread(&thread_level);
-			MPI_Is_thread_main(&thread_is_main);
-			if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED && thread_is_main))
-			{
-				//Communicate with the Other Processes to exchange Halo lines
-				if (rank>0)
+			{	
+				MPI_Query_thread(&thread_level);
+				MPI_Is_thread_main(&thread_is_main);
+				if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED && thread_is_main))
 				{
-					//tag_send=rank+10;
-					//tag_recv=rank-1+20;
-					tag_send=rank;
-					tag_recv=rank-1;
-					error_code=MPI_Sendrecv(Matrix_Out[1],N + 1,MPI_DOUBLE, rank -1, tag_send,
-								Matrix_Out[0],N + 1,MPI_DOUBLE, rank -1, tag_recv,
-								MPI_COMM_WORLD,&status);
-					if (error_code!=MPI_SUCCESS)
+					//Communicate with the Other Processes to exchange Halo lines
+					if (rank>0)
 					{
-						printf("Error in SendRecv");
+						//tag_send=rank+10;
+						//tag_recv=rank-1+20;
+						tag_send=rank;
+						tag_recv=rank-1;
+						error_code=MPI_Sendrecv(Matrix_Out[1],N + 1,MPI_DOUBLE, rank -1, tag_send,
+									Matrix_Out[0],N + 1,MPI_DOUBLE, rank -1, tag_recv,
+									MPI_COMM_WORLD,&status);
+						if (error_code!=MPI_SUCCESS)
+						{
+							printf("Error in SendRecv");
+						}
 					}
-				}
-				if (rank<size -1)
-					{
-					tag_send=rank;
-					tag_recv=rank+1;
-					/*error_code=MPI_Sendrecv(Matrix_Out[N_local + 2 - 2],N + 1,MPI_DOUBLE, rank +1, tag_send,
-								Matrix_Out[N_local + 2 - 1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
-								MPI_COMM_WORLD,&status);
-					*/			
-					error_code=MPI_Sendrecv(Matrix_Out[N_local],N + 1,MPI_DOUBLE, rank +1, tag_send,
-							Matrix_Out[N_local+1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
-								MPI_COMM_WORLD,&status);			
-					if (error_code!=MPI_SUCCESS)
-					{
-						printf("Error in SendRecv");
+					if (rank<size -1)
+						{
+						tag_send=rank;
+						tag_recv=rank+1;
+						/*error_code=MPI_Sendrecv(Matrix_Out[N_local + 2 - 2],N + 1,MPI_DOUBLE, rank +1, tag_send,
+									Matrix_Out[N_local + 2 - 1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
+										MPI_COMM_WORLD,&status);
+						*/			
+						error_code=MPI_Sendrecv(Matrix_Out[N_local],N + 1,MPI_DOUBLE, rank +1, tag_send,
+								Matrix_Out[N_local+1],N + 1,MPI_DOUBLE, rank +1, tag_recv,
+									MPI_COMM_WORLD,&status);			
+						if (error_code!=MPI_SUCCESS)
+						{
+								printf("Error in SendRecv");
+						}
 					}
-				}
-				//Find the global maximum of the residuum (later decide if this is low enough)
-				//Allreduce has no error handling
-				MPI_Allreduce(&maxresiduum,&globalmaxresiduum,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+					//Find the global maximum of the residuum (later decide if this is low enough)
+					//Allreduce has no error handling
+					MPI_Allreduce(&maxresiduum,&globalmaxresiduum,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
 			
 		
-				/* exchange m1 and m2 */
-				i = m1;
-				m1 = m2;
-				m2 = i;
+					/* exchange m1 and m2 */
+					k = m1;
+					m1 = m2;
+					m2 = k;
 			
-				results->stat_iteration++;
-				results->stat_precision_local = maxresiduum;
-				results->stat_precision = globalmaxresiduum;
+					results->stat_iteration++;
+					results->stat_precision_local = maxresiduum;
+					results->stat_precision = globalmaxresiduum;
 				
-				MPI_Barrier(MPI_COMM_WORLD);
-			}
-			else
-			{
-				printf("Error: Master Thread of Process %d cannot communicate. Why?",rank);
-			}
-			#pragma omp barrier
-	
-			/* check for stopping calculation, depending on termination method */
-			if (options->termination == TERM_PREC)
-			{
-				if (globalmaxresiduum < options->term_precision)
+					MPI_Barrier(MPI_COMM_WORLD);
+				}
+				else
 				{
-				term_iteration = 0;
+					printf("Error: Master Thread of Process %d cannot communicate. Why?",rank);
+				}
+				
+				
+				/* check for stopping calculation, depending on termination method */
+				if (options->termination == TERM_PREC)
+				{
+					if (globalmaxresiduum < options->term_precision)
+					{
+					term_iteration = 0;
+						
+					}
+				}
+				else if (options->termination == TERM_ITER)
+				{
 					
+					term_iteration--;
 				}
 			}
-			else if (options->termination == TERM_ITER)
-			{
-				term_iteration--;
-			}
+			#pragma omp barrier	
 		}
 	}
 		
