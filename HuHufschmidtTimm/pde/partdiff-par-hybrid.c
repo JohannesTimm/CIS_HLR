@@ -391,7 +391,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int tag_send, tag_recv;
 	int thread_level, thread_is_main;
 	MPI_Query_thread(&thread_level);
-	MPI_Is_thread_main(&thread_is_main);
+	//MPI_Is_thread_main(&thread_is_main);
 
 	
 	//printf("Rank %d, N_local %d, Interval %d, From %d, To %d \n",rank,N_local,(to-from),from, to);
@@ -455,7 +455,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 					fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
 				}
 			}
-			printf("Here is Thread %d from Rank %d Master %d istart %d iend %d \n",my_thread,rank,thread_is_main,i_start,i_end);
+			printf("Here is Thread %d of %d from Rank %d Master %d istart %d iend %d \n",my_thread,num_threads,rank,thread_is_main,i_start,i_end);
 			/* over all rows */
 			#pragma omp for private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum)
 			for (i = i_start; i < i_end; ++i)
