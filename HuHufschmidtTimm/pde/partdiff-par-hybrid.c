@@ -418,55 +418,66 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	}
 
 	while (term_iteration > 0)
-	{
+	{	
+		int rest;
 		int i_start, i_end;
 		int num_threads;
 		int my_thread;
 		int width;
 		double** Matrix_Out = arguments->Matrix[m1];
 		double** Matrix_In  = arguments->Matrix[m2];
-		//double* fpisin_i;
-		//fpisin_i = (double*)malloc(N * sizeof(double));
+// 		double* fpisin_i;
+// 		fpisin_i = (double*)malloc(N * sizeof(double));
 		maxresiduum = 0;
-		#pragma omp parallel shared(Matrix_In,Matrix_Out) private(my_thread,i_start,i_end,thread_is_main)
+//		#pragma omp parallel shared(Matrix_In,Matrix_Out) private(my_thread,i_start,i_end,thread_is_main) reduction(max:maxresiduum)
+//		#pragma omp parallel shared(Matrix_In,Matrix_Out), private(j,star,residuum), reduction(max:maxresiduum)
+		#pragma omp parallel private(j,star,residuum, i_start,i_end,thread_is_main)
 		{
 			
 			
 			num_threads = omp_get_num_threads();
 			my_thread = omp_get_thread_num();
-			width = (int) (N_local-1) / num_threads;
+			width = (int) (N_local) / num_threads;
+			rest = (N_local) % num_threads;
 			MPI_Is_thread_main(&thread_is_main);
-			if(my_thread == num_threads-1)
+			//if(my_thread == num_threads-1)
 		
-			{
-				i_start = 1 + my_thread * width;
-				i_end = N_local;
-			}
-			else
-			{
-				i_start = 1 + my_thread * width;
-				i_end = i_start + width;
-			}
-		
-		
-			//if (options->inf_func == FUNC_FPISIN)
 			//{
-			//	#pragma omp for firstprivate(fpisin,pih) //,i_start,i_end)
-			//	for (i = i_start; i < i_end; i++)			
-			//	{ 	
-			//		fpisin_i[i] = 0.0;
-			//		fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
-			//	}
+			//	i_start = 1 + my_thread * width;
+			//	i_end = N_local;
 			//}
+			//else
+			//{
+			//	i_start = 1 + my_thread * width;
+			//	i_end = i_start + width;
+			//}
+			if(my_thread < rest)
+				{
+				i_start=my_thread*((N_local)/num_threads +1)+1;
+				i_end=i_start+(N_local)/size;
+				}
+			else
+				{
+				i_start=my_thread*((N_local)/num_threads) +rest+1;
+				i_end=i_start+(N_local)/size-1;
+				}	
+// 			if (options->inf_func == FUNC_FPISIN)
+// 			{
+// 				#pragma omp for firstprivate(fpisin,pih) //,i_start,i_end)
+// 				for (i = i_start; i < i_end; i++)			
+// 				{ 	
+// 					fpisin_i[i] = 0.0;
+// 					fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
+// 				}
+// 			}
 			printf("Here is Thread %d of %d from Rank %d Master %d istart %d iend %d \n",my_thread,num_threads,rank,thread_is_main,i_start,i_end);
 			/* over all rows */
 			double fpisin_i = 0.0;
-			#pragma omp for private(i,j,star,residuum,fpisin_i) firstprivate(fpisin,pih) reduction(+:maxresiduum)
+// 			#pragma omp for private(j,star,residuum) firstprivate(pih) reduction(max:maxresiduum) collapse(2)
+			#pragma omp for private(j,star,residuum,fpisin_i) firstprivate(pih,fpisin) reduction(max:maxresiduum)
 			for (i = 1; i <= N_local; ++i)
 			//for (i = i_start; i <= i_end; ++i)
-			{
-				
-	
+			{	
 				if (options->inf_func == FUNC_FPISIN)
 				{
 					fpisin_i = fpisin * sin(pih * ((double)i + from - 1));
@@ -481,10 +492,10 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 					{
 						star += fpisin_i * sin(pih * (double)j);
 					}
-					//if (options->inf_func == FUNC_FPISIN)
-					//{
-					//	star += fpisin_i[i] * sin(pih * (double)j);
-					//}
+// 					if (options->inf_func == FUNC_FPISIN)
+// 					{
+// 						star += fpisin_i[i] * sin(pih * (double)j);
+// 					}
 	
 					if (options->termination == TERM_PREC || term_iteration == 1)
 					{
