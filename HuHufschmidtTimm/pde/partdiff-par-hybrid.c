@@ -416,19 +416,19 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 
 	while (term_iteration > 0)
 	{
+		int i_start, i_end;
+		int num_threads;
+		int my_thread;
+		int width;
 		double** Matrix_Out = arguments->Matrix[m1];
 		double** Matrix_In  = arguments->Matrix[m2];
 		double* fpisin_i;
 		fpisin_i = (double*)malloc(N * sizeof(double));
 		maxresiduum = 0;
-		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) 
-		//private(my_thread,i_start,i_end,thread_is_main)
+		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) private(my_thread,i_start,i_end,thread_is_main)
 		{
 			
-			int i_start, i_end;
-			int num_threads;
-			int my_thread;
-			int width;
+			
 			num_threads = omp_get_num_threads();
 			my_thread = omp_get_thread_num();
 			width = (int) (N_local-1) / num_threads;
@@ -493,6 +493,8 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			}
 			#pragma omp barrier
 			#pragma omp master
+			MPI_Query_thread(&thread_level);
+			MPI_Is_thread_main(&thread_is_main);
 			if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED && thread_is_main))
 			{
 				//Communicate with the Other Processes to exchange Halo lines
