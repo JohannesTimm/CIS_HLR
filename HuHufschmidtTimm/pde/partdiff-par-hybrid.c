@@ -985,7 +985,7 @@ main (int argc, char** argv)
     	MPI_Query_thread(&thread_level);
 	if ((thread_level > MPI_THREAD_FUNNELED ) || (thread_level == MPI_THREAD_FUNNELED ))
 		{
-			printf("Using Threads\n");
+			//printf("Using Threads\n");
 		}
 	else
 		{
