@@ -376,7 +376,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int const N_local =arguments->N_local;
 	int const N = arguments->N;
 	MPI_Status status;
-  
+	int const Max_Threads=options->number;
  	int from = arguments -> from;
  	int to = arguments -> to;
  	int const size = arguments -> size;
@@ -390,6 +390,9 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	int error_code;
 	int tag_send, tag_recv;
 	int thread_level, thread_is_main;
+	omp_set_dynamic(0); //disable dynamic teams to enforce thread number
+	omp_set_num_threads(Max_Threads);
+	
 	MPI_Query_thread(&thread_level);
 	//MPI_Is_thread_main(&thread_is_main);
 
@@ -422,10 +425,10 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 		int width;
 		double** Matrix_Out = arguments->Matrix[m1];
 		double** Matrix_In  = arguments->Matrix[m2];
-		double* fpisin_i;
-		fpisin_i = (double*)malloc(N * sizeof(double));
+		//double* fpisin_i;
+		//fpisin_i = (double*)malloc(N * sizeof(double));
 		maxresiduum = 0;
-		#pragma omp parallel shared(Matrix_In,Matrix_Out,fpisin_i) private(my_thread,i_start,i_end,thread_is_main)
+		#pragma omp parallel shared(Matrix_In,Matrix_Out) private(my_thread,i_start,i_end,thread_is_main)
 		{
 			
 			
@@ -446,41 +449,42 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 			}
 		
 		
-			if (options->inf_func == FUNC_FPISIN)
-			{
-				#pragma omp for firstprivate(fpisin,pih) //,i_start,i_end)
-				for (i = i_start; i < i_end; i++)			
-				{ 	
-					fpisin_i[i] = 0.0;
-					fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
-				}
-			}
+			//if (options->inf_func == FUNC_FPISIN)
+			//{
+			//	#pragma omp for firstprivate(fpisin,pih) //,i_start,i_end)
+			//	for (i = i_start; i < i_end; i++)			
+			//	{ 	
+			//		fpisin_i[i] = 0.0;
+			//		fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
+			//	}
+			//}
 			printf("Here is Thread %d of %d from Rank %d Master %d istart %d iend %d \n",my_thread,num_threads,rank,thread_is_main,i_start,i_end);
 			/* over all rows */
-			#pragma omp for private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum)
-			for (i = i_start; i < i_end; ++i)
-			//for (i = 1; i <= N_local; ++i)
+			double fpisin_i = 0.0;
+			#pragma omp for private(i,j,star,residuum,fpisin_i) firstprivate(fpisin,pih) reduction(+:maxresiduum)
+			for (i = 1; i <= N_local; ++i)
+			//for (i = i_start; i <= i_end; ++i)
 			{
-				//double fpisin_i = 0.0;
+				
 	
-				//if (options->inf_func == FUNC_FPISIN)
-				//{
-				//	fpisin_i = fpisin * sin(pih * ((double)i + from - 1));
-				//}
+				if (options->inf_func == FUNC_FPISIN)
+				{
+					fpisin_i = fpisin * sin(pih * ((double)i + from - 1));
+				}
 
 				/* over all columns */
 				for (j = 1; j < N; ++j)
 				{
 					star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);	
 	
-					//if (options->inf_func == FUNC_FPISIN)
-					//{
-					//	star += fpisin_i * sin(pih * (double)j);
-					//}
 					if (options->inf_func == FUNC_FPISIN)
 					{
-						star += fpisin_i[i] * sin(pih * (double)j);
+						star += fpisin_i * sin(pih * (double)j);
 					}
+					//if (options->inf_func == FUNC_FPISIN)
+					//{
+					//	star += fpisin_i[i] * sin(pih * (double)j);
+					//}
 	
 					if (options->termination == TERM_PREC || term_iteration == 1)
 					{
