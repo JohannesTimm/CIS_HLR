@@ -455,6 +455,7 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 					fpisin_i[i]= fpisin * sin(pih * ((double)i + from - 1));
 				}
 			}
+			printf("Here is Thread %d from Rank %d Master %d istart %d iend %d \n",my_thread,rank,thread_is_main,i_start,i_end);
 			/* over all rows */
 			#pragma omp for private(i,j,star,residuum) firstprivate(fpisin,pih) reduction(+:maxresiduum)
 			for (i = i_start; i < i_end; ++i)
