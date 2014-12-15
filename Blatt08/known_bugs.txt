@@ -1,0 +1,5 @@
+Partdiff-par-hybrid:
+*Number of Iterations are not correctly parsed from Commandline or interpreted. Stops at araound 5 Iterations. Does not work with Aborting by Precision either.
+*There are no runs which could validate the Numerics for the Hybrid Case.
+*On the Development Machine MPI_Funelled is not supported, testing only on cluster. :(
+
