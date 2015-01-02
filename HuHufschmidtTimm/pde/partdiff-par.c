@@ -260,17 +260,154 @@ initMatrices (struct calculation_arguments* arguments, struct options const* opt
 /* calculate: solves the equation                                           */
 /* For single process single thread only - compatibility code		    */
 /* ************************************************************************ */
+//static
+//void
+//calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calculation_results *results, struct options const* options)
+//{
+	//int i, j;                                   /* local variables for loops  */
+	//int m1, m2;                                 /* used as indices for old and new matrices       */
+	//double star;                                /* four times center value minus 4 neigh.b values */
+	//double residuum;                            /* residuum of current iteration                  */
+	//double maxresiduum;                         /* maximum residuum value of a slave in iteration */
+	//int const N_local =arguments->N_local;
+	//int const N = arguments->N;
+	//MPI_Status status;
+  
+ 	//int from = arguments -> from;
+ 	//int const size = arguments -> size;
+  	//int const rank = arguments -> rank;
+	//double const h = arguments->h;
+
+	//double pih = 0.0;
+	//double fpisin = 0.0;
+
+	//int term_iteration = options->term_iteration;
+
+	///* initialize m1 and m2 depending on algorithm */
+	//if (options->method == METH_JACOBI)
+	//{
+		//m1 = 0;
+		//m2 = 1;
+	//}
+	//else
+	//{
+		//m1 = 0;
+		//m2 = 0;
+	//}
+
+	//if (options->inf_func == FUNC_FPISIN)
+	//{
+		//pih = PI * h;
+		//fpisin = 0.25 * TWO_PI_SQUARE * h * h;
+	//}
+
+	//while (term_iteration > 0)
+	//{
+		//double** Matrix_Out = arguments->Matrix[m1];
+		//double** Matrix_In  = arguments->Matrix[m2];
+
+		//maxresiduum = 0;
+
+			///* when this process has halo lines received, then it can continue to calculate */	
+					///* receive halo lines from lower rank */
+			//if(rank != 0)
+			//{
+				//MPI_Recv(Matrix_Out[0], N + 1, MPI_DOUBLE, rank - 1, rank, MPI_COMM_WORLD,&status);
+			//}
+		//if(results -> stat_iteration > 0)
+		//{		
+		///* receive halo lines from higher rank */
+			//if(rank + 1 != size)
+			//{
+				//MPI_Recv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &status);
+			//}
+		//}
+		///* over all rows */
+		//for (i = 1; i <= N_local; i++)
+		//{
+			//double fpisin_i = 0.0;
+
+			//if (options->inf_func == FUNC_FPISIN)
+			//{
+				//fpisin_i = fpisin * sin(pih * ((double)i + from -1));
+			//}
+
+			///* over all columns */
+			//for (j = 1; j < N; j++)
+			//{
+				//star = 0.25 * (Matrix_In[i-1][j] + Matrix_In[i][j-1] + Matrix_In[i][j+1] + Matrix_In[i+1][j]);
+
+				//if (options->inf_func == FUNC_FPISIN)
+				//{
+					//star += fpisin_i * sin(pih * (double)j);
+				//}
+
+				//if (options->termination == TERM_PREC || term_iteration == 1)
+				//{
+					//residuum = Matrix_In[i][j] - star;
+					//residuum = (residuum < 0) ? -residuum : residuum;
+					//maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+				//}
+
+				//Matrix_Out[i][j] = star;
+			//}
+		//}
+		//if (term_iteration > 1)
+		//{
+			///* send the second lines to lower rank*/
+			//if(rank != 0)
+			//{
+				//MPI_Send(Matrix_Out[1], N + 1, MPI_DOUBLE, rank - 1, rank - 1, MPI_COMM_WORLD);
+			//}
+		//}
+			
+		///* send halo lines to higher rank */			 
+		//if(rank + 1 != size)
+		//{
+			//MPI_Send(Matrix_Out[N_local], N + 1, MPI_DOUBLE, rank + 1, rank + 1, MPI_COMM_WORLD);
+		//}
+
+		//results->stat_iteration++;
+		//results->stat_precision = maxresiduum;
+
+		///* exchange m1 and m2 */
+		//i = m1;
+		//m1 = m2;
+		//m2 = i;
+
+		///* check for stopping calculation, depending on termination method */
+		//if (options->termination == TERM_PREC)
+		//{
+			//if (maxresiduum < options->term_precision)
+			//{
+				//term_iteration = 0;
+			//}
+		//}
+		//else if (options->termination == TERM_ITER)
+		//{
+			//term_iteration--;
+		//}
+	//}
+
+	//results->m = m2;
+//}
 static
 void
-calculate (struct calculation_arguments const* arguments, struct calculation_results *results, struct options const* options)
+calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calculation_results *results, struct options const* options)
 {
 	int i, j;                                   /* local variables for loops  */
 	int m1, m2;                                 /* used as indices for old and new matrices       */
 	double star;                                /* four times center value minus 4 neigh.b values */
 	double residuum;                            /* residuum of current iteration                  */
 	double maxresiduum;                         /* maximum residuum value of a slave in iteration */
-
+	int const N_local =arguments->N_local;
 	int const N = arguments->N;
+	MPI_Status status;
+	MPI_Request requestLow, requestHigh;
+  
+ 	int from = arguments -> from;
+ 	int const size = arguments -> size;
+  	int const rank = arguments -> rank;
 	double const h = arguments->h;
 
 	double pih = 0.0;
@@ -303,14 +440,37 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 		maxresiduum = 0;
 
+			/* when this process has halo lines received, then it can continue to calculate */	
+					/* receive halo lines from lower rank */
+	if (size != 1)
+	{
+			if (rank != 0)
+			{
+				//send message to lower rank.
+				MPI_Isend(Matrix_Out[1], N + 1, MPI_DOUBLE, rank - 1, rank - 1, MPI_COMM_WORLD, &requestLow);
+			}
+			if (rank != size - 1) 
+			{
+				//receive message that come from higher rank, correspond to the upper Isend.
+				MPI_Irecv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &requestLow);
+				MPI_Wait(&requestLow, &status);
+			}
+			if (rank != 0) 
+			{
+				//receive message that come from lower rank, correspond to the Isend which is behind calculation.
+				MPI_Irecv(Matrix_Out[0], N + 1, MPI_DOUBLE, rank - 1, rank, MPI_COMM_WORLD, &requestHigh);
+				MPI_Wait(&requestHigh, &status);
+			}	
+		MPI_Wait(&requestLow, &status);
+	}
 		/* over all rows */
-		for (i = 1; i < N; i++)
+		for (i = 1; i <= N_local; i++)
 		{
 			double fpisin_i = 0.0;
 
 			if (options->inf_func == FUNC_FPISIN)
 			{
-				fpisin_i = fpisin * sin(pih * (double)i);
+				fpisin_i = fpisin * sin(pih * ((double)i + from -1));
 			}
 
 			/* over all columns */
@@ -332,8 +492,23 @@ calculate (struct calculation_arguments const* arguments, struct calculation_res
 
 				Matrix_Out[i][j] = star;
 			}
+			if(size != 1)
+			{
+				if ( (i == N_local - 1) && (results -> stat_iteration != 0) )
+				{
+					//avoid overtake.
+					MPI_Wait(&requestHigh, &status);
+				}
+			}
 		}
-
+		if (size != 1)
+		{
+			if (rank != size - 1)
+			{
+				//send message to higher rank, correspond to the second Irecv before calculation.
+				MPI_Isend(Matrix_Out[N_local], N + 1, MPI_DOUBLE, rank + 1, rank + 1, MPI_COMM_WORLD, &requestHigh);
+			}
+		}
 		results->stat_iteration++;
 		results->stat_precision = maxresiduum;
 
@@ -378,7 +553,6 @@ calculate_MPI_Jacobi (struct calculation_arguments const* arguments, struct calc
 	MPI_Status status;
   
  	int from = arguments -> from;
- 	int to = arguments -> to;
  	int const size = arguments -> size;
   	int const rank = arguments -> rank;
 	double const h = arguments->h;
@@ -916,8 +1090,8 @@ main (int argc, char** argv)
 	}
 	else
 	{	
-		printf("The Gauss-Seidel Method is not yet implementet as a parallel program. Computing ressources are Wasted");
-		calculate(&arguments, &results, &options);     
+		//printf("The Gauss-Seidel Method is not yet implementet as a parallel program. Computing ressources are Wasted");
+		calculate_MPI_Gauss(&arguments, &results, &options);     
 	}
 	gettimeofday(&comp_time, NULL);                   /*  stop timer          */
 	MPI_Barrier(MPI_COMM_WORLD);
