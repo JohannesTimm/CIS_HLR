@@ -399,11 +399,12 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 	int m1, m2;                                 /* used as indices for old and new matrices       */
 	double star;                                /* four times center value minus 4 neigh.b values */
 	double residuum;                            /* residuum of current iteration                  */
-	double maxresiduum;                         /* maximum residuum value of a slave in iteration */
+	double maxresiduum;
+	double globalmaxresiduum;                         /* maximum residuum value of a slave in iteration */
 	int const N_local =arguments->N_local;
 	int const N = arguments->N;
 	MPI_Status status;
-	MPI_Request requestLow, requestHigh;
+	MPI_Request requestLow, requestHigh,requestPrec;
   
  	int from = arguments -> from;
  	int const size = arguments -> size;
@@ -453,6 +454,7 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			{
 				//receive message that come from higher rank, correspond to the upper Isend.
 				MPI_Irecv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &requestLow);
+				
 				MPI_Wait(&requestLow, &status);
 			}
 			if (rank != 0) 
@@ -507,8 +509,17 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			{
 				//send message to higher rank, correspond to the second Irecv before calculation.
 				MPI_Isend(Matrix_Out[N_local], N + 1, MPI_DOUBLE, rank + 1, rank + 1, MPI_COMM_WORLD, &requestHigh);
+				MPI_Isend(&maxresiduum,1,MPI_DOUBLE,rank+1,99,MPI_COMM_WORLD,&requestPrec);
+				MPI_Wait(&requestPrec,&status);
+			}
+			if (rank != 0)
+			{
+				MPI_Irecv(&globalmaxresiduum,1,MPI_DOUBLE,rank-1,99,MPI_COMM_WORLD,&requestPrec);
+				MPI_Wait(&requestPrec,&status);
 			}
 		}
+		
+		maxresiduum = (globalmaxresiduum < maxresiduum) ? maxresiduum : globalmaxresiduum;
 		results->stat_iteration++;
 		results->stat_precision = maxresiduum;
 
