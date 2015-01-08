@@ -27,7 +27,7 @@
 #include <malloc.h>
 #include <sys/time.h>
 #include <mpi.h>
-
+#include <stdbool.h>
 #include "partdiff-par.h"
 
 struct calculation_arguments
@@ -404,8 +404,9 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 	int const N_local =arguments->N_local;
 	int const N = arguments->N;
 	MPI_Status status;
-	MPI_Request requestLow, requestHigh,requestPrec;
-  
+	MPI_Request requestLow, requestHigh,requestPrec,requestAbortRecv,requestAbortSend;
+  	int Abort=0;
+  	int FirstRun=1;
  	int from = arguments -> from;
  	int const size = arguments -> size;
   	int const rank = arguments -> rank;
@@ -449,11 +450,13 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			{
 				//send message to lower rank.
 				MPI_Isend(Matrix_Out[1], N + 1, MPI_DOUBLE, rank - 1, rank - 1, MPI_COMM_WORLD, &requestLow);
+				MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
 			}
 			if (rank != size - 1) 
 			{
 				//receive message that come from higher rank, correspond to the upper Isend.
 				MPI_Irecv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &requestLow);
+				MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
 				
 				MPI_Wait(&requestLow, &status);
 			}
@@ -463,7 +466,20 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 				MPI_Irecv(Matrix_Out[0], N + 1, MPI_DOUBLE, rank - 1, rank, MPI_COMM_WORLD, &requestHigh);
 				MPI_Wait(&requestHigh, &status);
 			}	
+			if (rank ==0)
+			{
+				if (FirstRun ==0)
+				{
+				MPI_Irecv(&Abort,1,MPI_INT,size-1,999,MPI_COMM_WORLD, &requestAbortRecv);
+				}
+			
+			}
+			
 		MPI_Wait(&requestLow, &status);
+	}
+	if (FirstRun==1) 
+	{
+		FirstRun=0;
 	}
 		/* over all rows */
 		for (i = 1; i <= N_local; i++)
@@ -527,15 +543,49 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 		i = m1;
 		m1 = m2;
 		m2 = i;
+		
+		MPI_Wait(&requestAbortRecv,&status);
+		if (Abort)
+		{
+		term_iteration = 0;
+		}
 
 		/* check for stopping calculation, depending on termination method */
 		if (options->termination == TERM_PREC)
 		{
-			if (maxresiduum < options->term_precision)
+			if (size!=1) 
 			{
-				term_iteration = 0;
+				if (rank == size-1)
+				{
+				int AbortSend;
+					if (maxresiduum < options->term_precision)
+					{	
+						AbortSend=1;
+						MPI_Isend(&AbortSend,1,MPI_INT,0,999,MPI_COMM_WORLD,&requestAbortSend);
+					}
+					else
+					{	
+						AbortSend=0;
+						MPI_Isend(&AbortSend,1,MPI_INT,0,999,MPI_COMM_WORLD,&requestAbortSend);
+					}
+				}
+				else
+				{
+					MPI_Isend(&Abort,1,MPI_INT,rank+1,999,MPI_COMM_WORLD,&requestAbortSend);
+					}
+				MPI_Wait(&requestAbortSend,&status);
+			}	
+			else
+			{
+				//if (options->termination == TERM_PREC)
+				//{
+					if (maxresiduum < options->term_precision)
+					{
+					term_iteration = 0;
+					}
+				//}
 			}
-		}
+		}		
 		else if (options->termination == TERM_ITER)
 		{
 			term_iteration--;
