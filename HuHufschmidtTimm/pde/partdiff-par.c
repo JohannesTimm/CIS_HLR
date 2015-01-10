@@ -400,12 +400,17 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 	double star;                                /* four times center value minus 4 neigh.b values */
 	double residuum;                            /* residuum of current iteration                  */
 	double maxresiduum;
+	double maxresiduumbuffer;
 	double globalmaxresiduum;                         /* maximum residuum value of a slave in iteration */
 	int const N_local =arguments->N_local;
 	int const N = arguments->N;
 	MPI_Status status;
-	MPI_Request requestLow, requestHigh,requestPrec,requestAbortRecv,requestAbortSend;
+	MPI_Request requestLow, requestHigh,requestPrec;
+	MPI_Request requestAbortRecv,requestAbortSend;
+	MPI_Request requestResiduumRecv,requestResiduumSend;
+	MPI_Request requestAbort2Recv,requestAbort2Send;
   	int Abort=0;
+  	int Abort2=0;
   	int FirstRun=1;
  	int from = arguments -> from;
  	int const size = arguments -> size;
@@ -441,6 +446,7 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 		double** Matrix_In  = arguments->Matrix[m2];
 
 		maxresiduum = 0;
+		maxresiduumbuffer =0;
 
 			/* when this process has halo lines received, then it can continue to calculate */	
 					/* receive halo lines from lower rank */
@@ -450,13 +456,13 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			{
 				//send message to lower rank.
 				MPI_Isend(Matrix_Out[1], N + 1, MPI_DOUBLE, rank - 1, rank - 1, MPI_COMM_WORLD, &requestLow);
-				MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
+			//	MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
 			}
 			if (rank != size - 1) 
 			{
 				//receive message that come from higher rank, correspond to the upper Isend.
 				MPI_Irecv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &requestLow);
-				MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
+			//	MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
 				
 				MPI_Wait(&requestLow, &status);
 			}
@@ -466,16 +472,35 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 				MPI_Irecv(Matrix_Out[0], N + 1, MPI_DOUBLE, rank - 1, rank, MPI_COMM_WORLD, &requestHigh);
 				MPI_Wait(&requestHigh, &status);
 			}	
-			if (rank ==0)
-			{
-				if (FirstRun ==0)
-				{
-				MPI_Irecv(&Abort,1,MPI_INT,size-1,999,MPI_COMM_WORLD, &requestAbortRecv);
-				}
+//			if (rank ==0)
+//			{
+//				if (FirstRun ==0)
+//				{
+//				printf("Rank 0 Reciving Abort Criteria")
+//				MPI_Irecv(&Abort2,1,MPI_INT,size-1,999,MPI_COMM_WORLD, &requestAbort2Recv);
+//				}
+//			
+//			}
 			
+			if (rank >0)
+			{
+				MPI_Irecv(&maxresiduumbuffer,1,MPI_DOUBLE,rank-1,888,MPI_COMM_WORLD,&requestResiduumRecv);
+				MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
+				
 			}
+			//if (FirstRun ==0)
+			//{
+			//	if (rank != size - 1) 
+			//	{
+			//		MPI_Irecv(&Abort2,1,MPI_INT,rank+1,777,MPI_COMM_WORLD, &requestAbort2Recv);
+			//	}
+			//}
 			
 		MPI_Wait(&requestLow, &status);
+		if (rank>0)
+		{
+			MPI_Wait(&requestResiduumRecv,&status);
+		}
 	}
 	if (FirstRun==1) 
 	{
@@ -506,6 +531,7 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 					residuum = Matrix_In[i][j] - star;
 					residuum = (residuum < 0) ? -residuum : residuum;
 					maxresiduum = (residuum < maxresiduum) ? maxresiduum : residuum;
+					maxresiduum = (maxresiduumbuffer < maxresiduum) ? maxresiduum : maxresiduumbuffer;
 				}
 
 				Matrix_Out[i][j] = star;
@@ -519,23 +545,26 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 				}
 			}
 		}
+		
 		if (size != 1)
 		{
 			if (rank != size - 1)
 			{
 				//send message to higher rank, correspond to the second Irecv before calculation.
 				MPI_Isend(Matrix_Out[N_local], N + 1, MPI_DOUBLE, rank + 1, rank + 1, MPI_COMM_WORLD, &requestHigh);
-				MPI_Isend(&maxresiduum,1,MPI_DOUBLE,rank+1,99,MPI_COMM_WORLD,&requestPrec);
+				
+				
+				MPI_Isend(&maxresiduum,1,MPI_DOUBLE,rank+1,888,MPI_COMM_WORLD,&requestPrec);
 				MPI_Wait(&requestPrec,&status);
 			}
-			if (rank != 0)
-			{
-				MPI_Irecv(&globalmaxresiduum,1,MPI_DOUBLE,rank-1,99,MPI_COMM_WORLD,&requestPrec);
-				MPI_Wait(&requestPrec,&status);
-			}
+			//if (rank != 0)
+			//{
+			//	MPI_Irecv(&globalmaxresiduum,1,MPI_DOUBLE,rank-1,99,MPI_COMM_WORLD,&requestPrec);
+			//	MPI_Wait(&requestPrec,&status);
+			//}
 		}
 		
-		maxresiduum = (globalmaxresiduum < maxresiduum) ? maxresiduum : globalmaxresiduum;
+		//maxresiduum = (globalmaxresiduum < maxresiduum) ? maxresiduum : globalmaxresiduum;
 		results->stat_iteration++;
 		results->stat_precision = maxresiduum;
 
