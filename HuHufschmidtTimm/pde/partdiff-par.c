@@ -465,8 +465,9 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 				MPI_Irecv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &requestLow);
 			//	MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
 				
-				MPI_Wait(&requestLow, &status);
+				
 			}
+			MPI_Wait(&requestLow, &status);
 			if (rank != 0) 
 			{
 				//receive message that come from lower rank, correspond to the Isend which is behind calculation.
