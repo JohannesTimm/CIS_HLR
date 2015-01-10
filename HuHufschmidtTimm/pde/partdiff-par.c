@@ -406,7 +406,8 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 	int const N = arguments->N;
 	MPI_Status status;
 	MPI_Request requestLow, requestHigh,requestPrec;
-	MPI_Request requestAbortRecv,requestAbortSend;
+	MPI_Request requestAbortRecv=MPI_REQUEST_NULL;
+	MPI_Request requestAbortSend;
 	MPI_Request requestResiduumRecv,requestResiduumSend;
 	MPI_Request requestAbort2Recv,requestAbort2Send;
   	int Abort=0;
