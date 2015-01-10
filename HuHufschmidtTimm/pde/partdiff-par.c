@@ -410,14 +410,15 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 	MPI_Request requestHighSend=MPI_REQUEST_NULL;
 	MPI_Request requestHighRecv=MPI_REQUEST_NULL;
 	MPI_Request requestPrec=MPI_REQUEST_NULL;
-	MPI_Request requestAbortRecv=MPI_REQUEST_NULL;
+	//MPI_Request requestAbortRecv=MPI_REQUEST_NULL;
 	MPI_Request requestAbortSend=MPI_REQUEST_NULL;
-	MPI_Request requestResiduumRecv,requestResiduumSend;
-	MPI_Request requestAbort2Recv,requestAbort2Send;
+	MPI_Request requestResiduumRecv;//requestResiduumSend;
+	//MPI_Request requestAbort2Recv,requestAbort2Send;
   	int Abort=0;
-  	int Abort2=0;
+  	//int Abort2=0;
   	int FirstRun=1;
-	int flag;
+	int CanReciveAbort=0;
+	//int flag;
  	int from = arguments -> from;
  	int const size = arguments -> size;
   	int const rank = arguments -> rank;
@@ -448,6 +449,7 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 
 	while (term_iteration > 0)
 	{
+	//printf("Rank %d Iteration %d Term %d\n",rank,(int)results->stat_iteration,term_iteration);
 		double** Matrix_Out = arguments->Matrix[m1];
 		double** Matrix_In  = arguments->Matrix[m2];
 
@@ -466,29 +468,46 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			}
 			if (options->termination == TERM_PREC)
 			{	
-				if (size!=1) 
+				if ((int)results->stat_iteration >= size)
 				{
-					if (rank !=size-1)
+					CanReciveAbort=1;
+				}	
+				if (CanReciveAbort ==1)
+				{
+					if (rank >0)
 					{
-						MPI_Iprobe(MPI_ANY_SOURCE, 999, MPI_COMM_WORLD,&flag, &status);
-						if (flag)
-						{
-							
-							MPI_Recv(&Abort,1,MPI_INT,status.MPI_SOURCE,999,MPI_COMM_WORLD,&status);
+						//MPI_Iprobe(MPI_ANY_SOURCE, 999, MPI_COMM_WORLD,&flag, &status);
+						//if (flag)
+						//{
+						//	
+						//MPI_Recv(&Abort,1,MPI_INT,status.MPI_SOURCE,999,MPI_COMM_WORLD,&status);
+						MPI_Recv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD,&status);
 							if (Abort==1)
 							{
 							term_iteration = 0;	 
 							}
-							 
+							
+						if (rank != size -1)
+						{	 
 							MPI_Isend(&Abort,1,MPI_INT,rank+1,999,MPI_COMM_WORLD,&requestAbortSend);
 						}
-						else
-						{
-						if (results->stat_iteration > size)
+						//else
+						//{
+						//if (results->stat_iteration > size)
+						//	{
+						//	printf("Rank %d Didnt Recive Abort Message,but it was expected Iteration %d \n",rank,(int)results->stat_iteration);
+						//	}
+						//}
+					}
+					else if (rank==0)
+					{
+						MPI_Recv(&Abort,1,MPI_INT,size-1,999,MPI_COMM_WORLD,&status);
+							if (Abort==1)
 							{
-							printf("Didnt Recive Abort Message,but it was expected");
-							}
-						}
+							term_iteration = 0;	 
+							}							 
+							MPI_Isend(&Abort,1,MPI_INT,rank+1,999,MPI_COMM_WORLD,&requestAbortSend);
+						
 					}
 				}
 			}	
@@ -506,7 +525,7 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			{
 				//receive message that come from lower rank, correspond to the Isend which is behind calculation.
 				MPI_Irecv(Matrix_Out[0], N + 1, MPI_DOUBLE, rank - 1, rank, MPI_COMM_WORLD, &requestHighRecv);
-				MPI_Wait(&requestHighRecv, &status);
+				
 			}
 						
 	
@@ -538,6 +557,10 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 		if (rank>0)
 		{
 			MPI_Wait(&requestResiduumRecv,&status);
+		}
+		if (rank != size-1)
+		{
+			MPI_Wait(&requestHighRecv, &status);
 		}
 	}
 	if (FirstRun==1) 
@@ -607,7 +630,8 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 		
 		results->stat_iteration++;
 		results->stat_precision = maxresiduum;
-
+		
+		
 		/* exchange m1 and m2 */
 		i = m1;
 		m1 = m2;
@@ -661,6 +685,7 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			term_iteration--;
 		}
 	}
+	//printf("Rank %d Terminated at Iteration %d \n",rank,(int)results->stat_iteration);
 	if (rank != size -1)
 	{
 		MPI_Wait(&requestHighSend, &status);
