@@ -405,7 +405,9 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 	int const N_local =arguments->N_local;
 	int const N = arguments->N;
 	MPI_Status status;
-	MPI_Request requestLow, requestHigh,requestPrec;
+	MPI_Request requestLowSend=MPI_REQUEST_NULL;
+	MPI_Request requestLowRecv=MPI_REQUEST_NULL; 
+	MPI_Request requestHigh,requestPrec;
 	MPI_Request requestAbortRecv=MPI_REQUEST_NULL;
 	MPI_Request requestAbortSend;
 	MPI_Request requestResiduumRecv,requestResiduumSend;
@@ -456,18 +458,18 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			if (rank != 0)
 			{
 				//send message to lower rank.
-				MPI_Isend(Matrix_Out[1], N + 1, MPI_DOUBLE, rank - 1, rank - 1, MPI_COMM_WORLD, &requestLow);
+				MPI_Isend(Matrix_Out[1], N + 1, MPI_DOUBLE, rank - 1, rank - 1, MPI_COMM_WORLD, &requestLowSend);
 			//	MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
 			}
 			if (rank != size - 1) 
 			{
 				//receive message that come from higher rank, correspond to the upper Isend.
-				MPI_Irecv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &requestLow);
+				MPI_Irecv(Matrix_Out[N_local + 1], N + 1, MPI_DOUBLE, rank + 1, rank, MPI_COMM_WORLD, &requestLowRecv);
 			//	MPI_Irecv(&Abort,1,MPI_INT,rank-1,999,MPI_COMM_WORLD, &requestAbortRecv);
 				
 				
 			}
-			MPI_Wait(&requestLow, &status);
+			
 			if (rank != 0) 
 			{
 				//receive message that come from lower rank, correspond to the Isend which is behind calculation.
@@ -498,7 +500,8 @@ calculate_MPI_Gauss (struct calculation_arguments const* arguments, struct calcu
 			//	}
 			//}
 			
-		MPI_Wait(&requestLow, &status);
+		MPI_Wait(&requestLowSend, &status);
+		MPI_Wait(&requestLowRecv, &status);
 		if (rank>0)
 		{
 			MPI_Wait(&requestResiduumRecv,&status);
