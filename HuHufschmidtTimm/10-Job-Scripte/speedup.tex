@@ -79,7 +79,7 @@ Prozesse&Matrix Größe&Matrix/Prozess&Interlines \\ \hline \endhead
 \end{longtable}
 Die Wahl der Interlines wurde so getroffen, dass die Matrixgröße mit Anzahl der Prozesse zunimmt, aber die Größe der Matrix pro Prozess abnimmt. Die schnellere Berechnung in jedem Prozess sollte dann für das mehr an Kommunikation kompensieren.
 Leider sind die Interlines so gewählt, dass eine Lastungleichheit entsteht, da mindestens 1 Prozess eine Zeile mehr oder weniger berechnen braucht als die anderen.
-% \newpage
+\newpage
 \FloatBarrier
 \subsection{Strong Scaling}
 \subsubsection{Gauss-Seidel}
@@ -115,6 +115,7 @@ Auch hier ist eine Interpretation wieder schwierig.
 Dieser Graph stellt die gleichen Daten dar wie der vorherige. Es ist zu
 beobachten, dass Gauss-Seidel im Vergleich bei einer Hohen Anzahl an Knoten schneller ist als Jacobi.
 Zudem profitiert Jacobi offenbar nicht so stark von einer erhöhten Anzahl an Prozessen.
+\newpage
 \FloatBarrier
 \subsection{Communication}
 \subsubsection{Gauss-Seidel}
@@ -158,6 +159,7 @@ Dieser Graph zeigt die gleichen Parameter wie der vorherige bei gleichen Vorraus
 
 Das Verhalten ändert sich maßgeblich. Es gibt jetzt keine klar erkennbaren Minima , sondern nur ein globales Maximum bei 10 Knoten. Dieses Maximum ist aber nur halb sogroß wie das vom Gauss-Seidel Verfahren.
 Offenbar ist das Jacobi Verfahren nicht ganz so anfällig für Performance Probleme, wie das Gauss-Seidel-Verfahren, wenn es um die Latenz der Kommuikation geht.
+\newpage
 \FloatBarrier
 \subsection{Diskussion}
 Es zeigt sich im direkten Vergleich, dass das Gauss-Seidel-Verfahren langsamerer ist als das Jacobi- Verfahren. Dies gilt beim Abbruch nach Genauigkeit. Eigentlich sollte dies nicht so sein, da das Gauss-Seidel-Verfahren mathematisch schneller konvergiert.
