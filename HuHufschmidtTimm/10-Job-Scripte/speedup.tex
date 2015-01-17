@@ -1,7 +1,7 @@
 \documentclass[a4paper,12pt]{scrartcl}
 \usepackage[ngerman]{babel}
 \usepackage[utf8]{inputenc}
-
+\usepackage[verbose]{placeins}
 \usepackage{lmodern}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -9,9 +9,12 @@
 \usepackage{multicol}
 \usepackage{enumerate}
 \usepackage{verbatim}
-\usepackage{epstopdf}
+
+\usepackage{float}
+%\usepackage{epstopdf}
 \usepackage{longtable}
 \usepackage{epsfig}
+ \usepackage{placeins}
 \usepackage{scrpage2}\pagestyle{scrheadings}
 \title{Qualitätsprüfung des Parallelisierten PDE-Solvers}
 \author{Johannes Timm \and Guannan Hu}
@@ -30,8 +33,14 @@
 \subsection{Weak Scaling}
 \subsubsection{Gauss-Seidel}
 % \begin{multicols}{2}
-\includegraphics[scale=0.8]{results/WEAK_SCALING_GS.eps}
+\begin{figure}[hr!]
+ \includegraphics[scale=0.8]{results/WEAK_SCALING_GS.eps}
+ \caption{Zusammenhang zwischen Laufzeit, Prozessen, Knoten und Problemgröße für das Gauss-Seidel-Verfahren}
+\end{figure}
+\begin{table}[hl!]
 \verbatiminput{results/WEAK_SCALING_GS.dat}
+\caption{Datentabelle zum Weak-Scaling des Gauss-Seidel Verfahrens}
+\end{table}
 % \end{multicols}
 
 
@@ -41,13 +50,20 @@ Allgemein lässt sich aber beobachten, dass die Schwankungen der Laufzeit, mit A
 Sie liegen im Bereich von 71-77 Sekunden. Die Überragende Geschwindigkeit bei einem Prozess wird durch das Fehlen der Kommunikation (und dem damit verbundenen Overhead) sowie dem Ausnutzen des CPU-Caches zugeschrieben.
 \subsubsection{Jacobi}
 % \begin{multicols}{2}
+\begin{figure}[hr!]
 \includegraphics[scale=0.8]{results/WEAK_SCALING_JA.eps}
+ \caption{Zusammenhang zwischen Laufzeit, Prozessen, Knoten und Problemgröße für das Jacobi-Verfahren}
+\end{figure}
+\begin{table}[hl!]
 \verbatiminput{results/WEAK_SCALING_JA.dat}
+\caption{Datentabelle zum Weak-Scaling des Jacobi Verfahrens}
+\end{table}
 % \end{multicols}
 
 Das Jacobi-Verfahren zeigt ein Konträres Verfahren im Vergleich zum Gauss-Seidel-Verfahren. 
 Bis auf die letzte Konfiguration liegen die Ausführungszeiten in einer Größenordung zwischen 36 und 40 Sekunden.
 Die Letzte Berechnung braucht jedoch 48 Sekunden.
+\FloatBarrier
 \subsubsection{Wahl der Interlines}
 \begin{longtable}{r|c|r|c}
 Prozesse&Matrix Größe&Matrix/Prozess&Interlines \\ \hline \endhead 
@@ -64,12 +80,18 @@ Prozesse&Matrix Größe&Matrix/Prozess&Interlines \\ \hline \endhead
 Die Wahl der Interlines wurde so getroffen, dass die Matrixgröße mit Anzahl der Prozesse zunimmt, aber die Größe der Matrix pro Prozess abnimmt. Die schnellere Berechnung in jedem Prozess sollte dann für das mehr an Kommunikation kompensieren.
 Leider sind die Interlines so gewählt, dass eine Lastungleichheit entsteht, da mindestens 1 Prozess eine Zeile mehr oder weniger berechnen braucht als die anderen.
 % \newpage
-
+\FloatBarrier
 \subsection{Strong Scaling}
 \subsubsection{Gauss-Seidel}
 % \begin{multicols}{2}
+\begin{figure}[hr!]
 \includegraphics[scale=0.8]{results/STRONG_SCALING_GS.eps}
+ \caption{Zusammenhang zwischen Laufzeit, Prozessen und Knoten für das Gauss-Seidel-Verfahren}
+\end{figure}
+\begin{table}[hl!]
 \verbatiminput{results/STRONG_SCALING_GS.dat}
+\caption{Datentabelle zum Strong-Scaling des Gauss-Seidel Verfahrens}
+\end{table}
 % \end{multicols}
 
 Diser Graph zeigt Prozesse, Knoten und benötigte Zeit. Es lässt sich
@@ -80,25 +102,37 @@ Auch hier ist eine Interpretation wieder schwierig.
 
 \subsubsection{Jacobi}
 % \begin{multicols}{2}
+\begin{figure}[hr!]
 \includegraphics[scale=0.8]{results/STRONG_SCALING_JA.eps}
+ \caption{Zusammenhang zwischen Laufzeit, Prozessen und Knoten für das Jacobi-Verfahren}
+\end{figure}
+\begin{table}[hl!]
 \verbatiminput{results/STRONG_SCALING_JA.dat}
+\caption{Datentabelle zum Strong-Scaling des Jacobi-Seidel Verfahrens}
+\end{table}
 % \end{multicols}
 
 Dieser Graph stellt die gleichen Daten dar wie der vorherige. Es ist zu
 beobachten, dass Gauss-Seidel im Vergleich bei einer Hohen Anzahl an Knoten schneller ist als Jacobi.
 Zudem profitiert Jacobi offenbar nicht so stark von einer erhöhten Anzahl an Prozessen.
-
+\FloatBarrier
 \subsection{Communication}
 \subsubsection{Gauss-Seidel}
 % \begin{multicols}{2}
+\begin{figure}[hr!]
 \includegraphics[scale=0.8]{results/COMMUNICATION_A_GS.eps}
+ \caption{Zusammenhang zwischen Laufzeit und Knoten für das Gauss-Seidel-Verfahren}
+\end{figure}
+\begin{table}[hl!]
 \verbatiminput{results/COMMUNICATION_A_GS.dat}
+\caption{Datentabelle zum Skalieren der Kommunikation des Gauss-Seidel Verfahrens}
+\end{table}
 % \end{multicols}
 
 In diesen Graphen sieht die Beziehung zwischen benötigter Zeit
 und Anzahl der Knoten mit insgesamt 10 Prozessen, auf dem das Programm
 gleichzeitig ausgeführt wurde. Die benötigte Zeit nimmt tendenziell zu.
-Abbruch war nach dem Erreichen einer Genauigkeit von $<3.3504*10{-5}$.
+Abbruch war nach dem Erreichen einer Genauigkeit von $<3.3504*10^{-5}$.
 
 Bei 4 Knoten lässt sich ein lokales Maximum beobachten, bei 6 Knoten ein lokales Minimum und bei 10 Knoten ein globales Maximum.
 
@@ -110,15 +144,21 @@ Dies gilt auch für die Latenz.
 
 \subsubsection{Jacobi}
 % \begin{multicols}{2}
+\begin{figure}[hr!]
 \includegraphics[scale=0.8]{results/COMMUNICATION_A_JA.eps}
+ \caption{Zusammenhang zwischen Laufzeit und Knoten für das Jacobi-Verfahren}
+\end{figure}
+\begin{table}[hl!]
 \verbatiminput{results/COMMUNICATION_A_JA.dat}
+\caption{Datentabelle zum Skalieren der Kommunikation des Jacobi Verfahrens}
+\end{table}
 % \end{multicols}
 
 Dieser Graph zeigt die gleichen Parameter wie der vorherige bei gleichen Vorraussetungen, abgesehen davon, dass jetzt das Jacobi Verfahren verwendet wird. 
 
 Das Verhalten ändert sich maßgeblich. Es gibt jetzt keine klar erkennbaren Minima , sondern nur ein globales Maximum bei 10 Knoten. Dieses Maximum ist aber nur halb sogroß wie das vom Gauss-Seidel Verfahren.
 Offenbar ist das Jacobi Verfahren nicht ganz so anfällig für Performance Probleme, wie das Gauss-Seidel-Verfahren, wenn es um die Latenz der Kommuikation geht.
-
+\FloatBarrier
 \subsection{Diskussion}
 Es zeigt sich im direkten Vergleich, dass das Gauss-Seidel-Verfahren langsamerer ist als das Jacobi- Verfahren. Dies gilt beim Abbruch nach Genauigkeit. Eigentlich sollte dies nicht so sein, da das Gauss-Seidel-Verfahren mathematisch schneller konvergiert.
 Offenbar ist die Implementierung des Gauss-Seidel-Verfahrens nicht genug getunt, bzw. die vorhandene Optimierung ist für die verwendete Rechner-Architektur nicht optimal.
