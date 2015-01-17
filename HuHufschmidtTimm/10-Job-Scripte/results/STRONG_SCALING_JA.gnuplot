@@ -1,4 +1,4 @@
-set title "Strong Scaling Jacobi 960 Interlines"
+set title "Strong Scaling Jacobi"
 set autoscale
 set pointsize 2.5
 set xlabel 'Prozesse'

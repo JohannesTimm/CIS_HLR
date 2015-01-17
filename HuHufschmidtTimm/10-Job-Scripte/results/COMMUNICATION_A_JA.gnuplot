@@ -1,4 +1,4 @@
-set title "Kommunikationstest A Jacobi 200 Interlines"
+set title "Kommunikationstest Jacobi"
 set autoscale
 set pointsize 2.5
 set xlabel 'Knoten'

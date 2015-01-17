@@ -1,4 +1,4 @@
-set title "Strong Scaling Gauss-Seidel 960 Interlines"
+set title "Strong Scaling Gauss-Seidel"
 set autoscale
 set pointsize 2.5
 set xlabel 'Prozesse'

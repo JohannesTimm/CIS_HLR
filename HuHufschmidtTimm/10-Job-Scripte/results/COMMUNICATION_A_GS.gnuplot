@@ -1,4 +1,4 @@
-set title "Kommunikationstest A Gauss-Seidel 200 Interlines"
+set title "Kommunikationstest Gauss-Seidel"
 set autoscale
 set pointsize 2.5
 set xlabel 'Knoten'
